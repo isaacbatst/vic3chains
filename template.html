@@ -1,0 +1,1774 @@
+<title>Grafo de Produção Vic3</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one-screen app. A bar on top, the graph fills the rest like a node editor, and the sheet of the pinned node
+   is anchored at the bottom. Skin modeled on shadcn/ui: every color is a role (background, foreground, card, popover,
+   primary, primary-foreground, secondary, muted, muted-foreground, accent, border, input, ring), plus canvas and
+   canvas-dot for the map. A base (data-base: neutral, stone, zinc, slate) sets the neutrals; an accent (data-destaque)
+   replaces primary, primary-foreground and ring. Blue and orange are never an accent: they mean in and out.
+   Depth comes from 1 px hairlines in the border color and from shadows on floating surfaces only. */
+:root {
+  --background: #ffffff; --foreground: #0a0a0a; --card: #ffffff; --popover: #ffffff; --secondary: #f5f5f5; --muted: #f5f5f5; --muted-foreground: #707070; --accent: #f5f5f5;
+    --border: #e5e5e5; --input: #e5e5e5; --canvas: #fafafa; --canvas-dot: #d4d4d4; --link: #d4d4d4;
+    --b-primary: #171717; --b-pf: #fafafa; --b-ring: #a3a3a3; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #2563eb; --out: #ea580c; --in-t: #2563eb; --out-t: #c2490a;
+  --am-neutral: #737373; --am-stone: #78716c; --am-zinc: #71717a; --am-slate: #64748b; --am-violeta: #7c3aed; --am-esmeralda: #047857; --am-rosa: #e11d48; --am-ambar: #d97706;
+  --primary: var(--a-primary, var(--b-primary)); --primary-foreground: var(--a-pf, var(--b-pf)); --ring: var(--a-ring, var(--b-ring)); --check: var(--a-check, var(--b-check)); --primary-text: var(--a-pt, var(--b-primary));
+  --sombra: 0 4px 6px -1px rgb(0 0 0 / 0.10), 0 2px 4px -2px rgb(0 0 0 / 0.10);
+  --body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: "Geist Mono", ui-monospace, SFMono-Regular, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: #0a0a0a; --foreground: #fafafa; --card: #171717; --popover: #171717; --secondary: #262626; --muted: #262626; --muted-foreground: #a3a3a3; --accent: #262626;
+    --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #0a0a0a; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #404040;
+    --b-primary: #e5e5e5; --b-pf: #171717; --b-ring: #737373; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23171717' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --am-neutral: #a3a3a3; --am-stone: #a8a29e; --am-zinc: #a1a1aa; --am-slate: #94a3b8; --am-violeta: #a78bfa; --am-esmeralda: #10b981; --am-rosa: #fb7185; --am-ambar: #f59e0b;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --background: #0a0a0a; --foreground: #fafafa; --card: #171717; --popover: #171717; --secondary: #262626; --muted: #262626; --muted-foreground: #a3a3a3; --accent: #262626;
+    --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #0a0a0a; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #404040;
+    --b-primary: #e5e5e5; --b-pf: #171717; --b-ring: #737373; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23171717' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+  --am-neutral: #a3a3a3; --am-stone: #a8a29e; --am-zinc: #a1a1aa; --am-slate: #94a3b8; --am-violeta: #a78bfa; --am-esmeralda: #10b981; --am-rosa: #fb7185; --am-ambar: #f59e0b;
+  color-scheme: dark;
+}
+:root[data-base="stone"] {
+  --background: #ffffff; --foreground: #0c0a09; --card: #ffffff; --popover: #ffffff; --secondary: #f5f5f4; --muted: #f5f5f4; --muted-foreground: #766f6a; --accent: #f5f5f4;
+    --border: #e7e5e4; --input: #e7e5e4; --canvas: #fafaf9; --canvas-dot: #d6d3d1; --link: #d6d3d1;
+    --b-primary: #1c1917; --b-pf: #fafaf9; --b-ring: #a8a29e; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23fafaf9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #2563eb; --out: #ea580c; --in-t: #2563eb; --out-t: #c2490a;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-base="stone"]:not([data-theme="light"]) {
+    --background: #0c0a09; --foreground: #fafaf9; --card: #1c1917; --popover: #1c1917; --secondary: #292524; --muted: #292524; --muted-foreground: #a8a29e; --accent: #292524;
+    --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #0c0a09; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #44403c;
+    --b-primary: #e7e5e4; --b-pf: #1c1917; --b-ring: #78716c; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%231c1917' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+  }
+}
+:root[data-base="stone"][data-theme="dark"] {
+  --background: #0c0a09; --foreground: #fafaf9; --card: #1c1917; --popover: #1c1917; --secondary: #292524; --muted: #292524; --muted-foreground: #a8a29e; --accent: #292524;
+    --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #0c0a09; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #44403c;
+    --b-primary: #e7e5e4; --b-pf: #1c1917; --b-ring: #78716c; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%231c1917' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+}
+:root[data-base="zinc"] {
+  --background: #ffffff; --foreground: #09090b; --card: #ffffff; --popover: #ffffff; --secondary: #f4f4f5; --muted: #f4f4f5; --muted-foreground: #6f6f78; --accent: #f4f4f5;
+    --border: #e4e4e7; --input: #e4e4e7; --canvas: #fafafa; --canvas-dot: #d4d4d8; --link: #d4d4d8;
+    --b-primary: #18181b; --b-pf: #fafafa; --b-ring: #a1a1aa; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #2563eb; --out: #ea580c; --in-t: #2563eb; --out-t: #c0480a;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-base="zinc"]:not([data-theme="light"]) {
+    --background: #09090b; --foreground: #fafafa; --card: #18181b; --popover: #18181b; --secondary: #27272a; --muted: #27272a; --muted-foreground: #a1a1aa; --accent: #27272a;
+    --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #09090b; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #3f3f46;
+    --b-primary: #e4e4e7; --b-pf: #18181b; --b-ring: #71717a; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%2318181b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+  }
+}
+:root[data-base="zinc"][data-theme="dark"] {
+  --background: #09090b; --foreground: #fafafa; --card: #18181b; --popover: #18181b; --secondary: #27272a; --muted: #27272a; --muted-foreground: #a1a1aa; --accent: #27272a;
+    --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #09090b; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #3f3f46;
+    --b-primary: #e4e4e7; --b-pf: #18181b; --b-ring: #71717a; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%2318181b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+}
+:root[data-base="slate"] {
+  --background: #ffffff; --foreground: #020617; --card: #ffffff; --popover: #ffffff; --secondary: #f1f5f9; --muted: #f1f5f9; --muted-foreground: #617187; --accent: #f1f5f9;
+    --border: #e2e8f0; --input: #e2e8f0; --canvas: #f8fafc; --canvas-dot: #cbd5e1; --link: #cbd5e1;
+    --b-primary: #0f172a; --b-pf: #f8fafc; --b-ring: #94a3b8; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23f8fafc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #2563eb; --out: #ea580c; --in-t: #2563eb; --out-t: #c2490a;
+}
+@media (prefers-color-scheme: dark) {
+  :root[data-base="slate"]:not([data-theme="light"]) {
+    --background: #020617; --foreground: #f8fafc; --card: #0f172a; --popover: #0f172a; --secondary: #1e293b; --muted: #1e293b; --muted-foreground: #94a3b8; --accent: #1e293b;
+    --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #020617; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #334155;
+    --b-primary: #e2e8f0; --b-pf: #0f172a; --b-ring: #64748b; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+  }
+}
+:root[data-base="slate"][data-theme="dark"] {
+  --background: #020617; --foreground: #f8fafc; --card: #0f172a; --popover: #0f172a; --secondary: #1e293b; --muted: #1e293b; --muted-foreground: #94a3b8; --accent: #1e293b;
+    --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #020617; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #334155;
+    --b-primary: #e2e8f0; --b-pf: #0f172a; --b-ring: #64748b; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+}
+:root[data-destaque="violeta"] { --a-primary: #7c3aed; --a-pt: #7c3aed; --a-pf: #ffffff; --a-ring: #7c3aed; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root[data-destaque="violeta"]:not([data-theme="light"]) { --a-primary: #a78bfa; --a-pt: #a78bfa; --a-pf: #2e1065; --a-ring: #a78bfa; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%232e1065' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
+:root[data-destaque="violeta"][data-theme="dark"] { --a-primary: #a78bfa; --a-pt: #a78bfa; --a-pf: #2e1065; --a-ring: #a78bfa; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%232e1065' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+:root[data-destaque="esmeralda"] { --a-primary: #047857; --a-pt: #047857; --a-pf: #ffffff; --a-ring: #047857; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root[data-destaque="esmeralda"]:not([data-theme="light"]) { --a-primary: #10b981; --a-pt: #10b981; --a-pf: #022c22; --a-ring: #10b981; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23022c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
+:root[data-destaque="esmeralda"][data-theme="dark"] { --a-primary: #10b981; --a-pt: #10b981; --a-pf: #022c22; --a-ring: #10b981; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23022c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+:root[data-destaque="rosa"] { --a-primary: #e11d48; --a-pt: #da1c46; --a-pf: #ffffff; --a-ring: #e11d48; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root[data-destaque="rosa"]:not([data-theme="light"]) { --a-primary: #fb7185; --a-pt: #fb7185; --a-pf: #4c0519; --a-ring: #fb7185; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%234c0519' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
+:root[data-destaque="rosa"][data-theme="dark"] { --a-primary: #fb7185; --a-pt: #fb7185; --a-pf: #4c0519; --a-ring: #fb7185; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%234c0519' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+:root[data-destaque="ambar"] { --a-primary: #d97706; --a-pt: #a75c05; --a-pf: #451a03; --a-ring: #d97706; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root[data-destaque="ambar"]:not([data-theme="light"]) { --a-primary: #f59e0b; --a-pt: #f59e0b; --a-pf: #451a03; --a-ring: #f59e0b; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
+:root[data-destaque="ambar"][data-theme="dark"] { --a-primary: #f59e0b; --a-pt: #f59e0b; --a-pf: #451a03; --a-ring: #f59e0b; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--canvas); color: var(--foreground); font-family: var(--body); font-size: 14px; line-height: 1.4; overflow: hidden; }
+h2 { font-size: 17px; font-weight: 600; line-height: 1.2; letter-spacing: -0.01em; margin: 0; }
+h3 { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+p { margin: 0; }
+a { color: var(--primary-text); text-underline-offset: 3px; }
+i { font-style: normal; }
+.small { font-size: 12px; color: var(--muted-foreground); }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+button, select, input { font: inherit; color: inherit; }
+button { cursor: pointer; font-weight: 500; }
+:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+img.ic { display: inline-block; flex: none; width: 20px; height: 20px; object-fit: contain; vertical-align: middle; }
+.sw { display: inline-block; flex: none; width: 10px; height: 10px; border-radius: 3px; background: var(--cat, var(--muted-foreground)); }
+
+.app { height: 100%; display: flex; flex-direction: column; position: relative; }
+
+/* top bar: one line, never wraps */
+.top { flex: none; display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 8px 12px; background: var(--card); border-bottom: 1px solid var(--border); position: relative; z-index: 6; }
+.brand { font-weight: 600; font-size: 14px; letter-spacing: -0.01em; white-space: nowrap; display: none; }
+@media (min-width: 1180px) { .brand { display: block; margin-right: 10px; } }
+/* ghost button: text only; the accent fill appears under the mouse */
+.tx { background: none; border: 0; border-radius: 8px; height: 36px; padding: 0 10px; white-space: nowrap; flex: none; color: var(--foreground); }
+.tx { display: inline-flex; align-items: center; gap: 7px; position: relative; }
+.tx:hover, .top .tx[aria-expanded="true"] { background: var(--accent); }
+/* icons in the Lucide style: 16 px, 1.75 stroke, current color */
+.ico { flex: none; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+.ico.cheio { fill: currentColor; }
+.icw { position: relative; display: inline-flex; }
+/* a small dot in primary: this control is away from its default, so the graph is restricted */
+.dotp { position: absolute; top: -3px; right: -4px; width: 7px; height: 7px; border-radius: 50%; background: var(--primary); }
+/* count of applied filters */
+.selo { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 6px; background: var(--primary); color: var(--primary-foreground); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.ico.tri { width: 12px; height: 12px; color: var(--muted-foreground); }
+.tx.sq { width: 32px; height: 32px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+/* outline button: hairline in the border color over the background */
+.btn { background: var(--background); border: 1px solid var(--border); border-radius: 8px; height: 30px; padding: 0 10px; white-space: nowrap; flex: none; color: var(--foreground); }
+.btn:hover { background: var(--accent); }
+/* segmented control: a hairline group; the active item is filled with primary */
+.seg { display: inline-flex; flex-wrap: nowrap; flex: none; gap: 2px; padding: 2px; border: 1px solid var(--border); border-radius: 8px; background: var(--background); }
+.seg button { background: none; border: 0; border-radius: 6px; height: 26px; padding: 0 9px; white-space: nowrap; color: var(--muted-foreground); }
+.seg button:hover { background: var(--accent); color: var(--foreground); }
+.seg button[aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+/* text action */
+.lk { background: none; border: 0; padding: 0; color: var(--primary-text); font-size: 12px; font-weight: 500; text-decoration: none; }
+.lk:hover { text-decoration: underline; text-underline-offset: 3px; }
+.lks { display: inline-flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.lks .sep { color: var(--muted-foreground); font-size: 12px; }
+.spacer { flex: 1 1 0; min-width: 0; }
+.search { position: relative; flex: 1 1 200px; min-width: 84px; max-width: 280px; margin-right: 6px; }
+.search input { width: 100%; height: 36px; background: var(--background); border: 1px solid var(--input); border-radius: 8px; padding: 0 10px; }
+.search input::placeholder { color: var(--muted-foreground); }
+.results { position: absolute; z-index: 9; left: 0; top: 100%; margin-top: 6px; width: max(100%, 300px); max-width: calc(100vw - 20px); background: var(--popover); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--sombra); max-height: 60vh; overflow-y: auto; display: flex; flex-direction: column; padding: 4px; }
+.results button { background: none; border: 0; border-radius: 6px; text-align: left; padding: 6px 8px; display: flex; align-items: center; gap: 8px; font-weight: 400; }
+.results button:hover, .results button:focus-visible { background: var(--accent); }
+.results .nm { flex: 1 1 0; min-width: 0; }
+.results .k { color: var(--muted-foreground); font-size: 12px; white-space: nowrap; }
+.results .none { padding: 8px; color: var(--muted-foreground); }
+.chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--secondary); min-width: 0; max-width: 240px; flex: 0 1 auto; margin-left: 4px; }
+.chip .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.chip .x { color: var(--muted-foreground); width: 14px; height: 14px; }
+/* when the text no longer fits, every trigger keeps only its icon; only below 520 px do Era and Language leave the bar */
+@media (max-width: 899px) {
+  .top .rt, .top .tx .tri { display: none; }
+  .top .tx { width: 36px; padding: 0; justify-content: center; }
+  .top .tx .selo { position: absolute; top: 1px; right: 0; min-width: 15px; height: 15px; padding: 0 3px; font-size: 10px; }
+}
+@media (max-width: 519px) { .top .so520 { display: none; } }
+@media (min-width: 520px) { .pop .sec.only-narrow { display: none; } }
+@media (max-width: 759px) { .chip { max-width: 104px; } .top { padding-inline: 8px; } }
+
+/* chain controls live inside the sheet header, on the right, before collapse and close: one line, always visible
+   (also with the sheet collapsed). As the width shrinks: short labels (icons) on the controls, then the technology tag
+   goes, then the category keeps only its square, and under 700 px the controls wrap to a second line of the header. */
+.cbar { display: flex; flex: none; align-items: center; gap: 8px; margin-right: 6px; padding-right: 12px; border-right: 1px solid var(--border); }
+.cbar .seg button { height: 22px; padding: 0 8px; display: inline-flex; align-items: center; }
+.cbar .btn { height: 28px; display: inline-flex; align-items: center; gap: 6px; }
+.cbar .cto { display: none; }
+.cbar .ico { width: 15px; height: 15px; }
+@media (max-width: 1499px) { .cbar .lgo { display: none; } .cbar .cto { display: inline-flex; } }
+@media (max-width: 1249px) { .sh-head .ttl > .tec { display: none; } }
+@media (max-width: 1099px) { .sh-head .cat .ctx { display: none; } }
+@media (max-width: 699px) {
+  .sheet .sh-head { flex-wrap: wrap; }
+  .sheet .sh-head .ttl { flex: 1 1 60%; }
+  .sheet .sh-head .cbar { order: 5; flex: 1 1 100%; flex-wrap: wrap; margin: 0; padding: 6px 0 0; border-right: 0; }
+}
+.sheet.recolhida .sh-head { padding-top: 10px; padding-bottom: 10px; }
+
+/* menus */
+.pop { position: absolute; z-index: 8; top: 54px; right: 8px; width: min(390px, calc(100% - 16px)); max-height: calc(100% - 66px); overflow-y: auto; background: var(--popover); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--sombra); padding: 14px; display: flex; flex-direction: column; gap: 14px; font-size: 13px; }
+.pop .sec { display: flex; flex-direction: column; gap: 6px; }
+.pop#pmetodos { gap: 8px; }
+.pop#pmetodos .sec { gap: 4px; }
+.catlist { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+@media (max-width: 420px) { .catlist { grid-template-columns: 1fr; } }
+.check { display: flex; align-items: center; gap: 8px; cursor: pointer; min-width: 0; padding: 4px 6px; border-radius: 6px; }
+.check:hover { background: var(--accent); }
+input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; margin: 0; flex: none; border: 1px solid var(--input); border-radius: 4px; background: var(--background); cursor: pointer; }
+input[type="checkbox"]:checked { border-color: var(--primary); background: var(--primary) var(--check) center / 12px 12px no-repeat; }
+.check .ct { color: var(--muted-foreground); font-size: 12px; margin-left: auto; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.pop ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; background: var(--muted); }
+/* a list of choices: the selected one carries a check mark in primary */
+.atalhos, .ops { display: flex; flex-direction: column; gap: 2px; }
+.atalho, .op { text-align: left; background: none; border: 0; border-radius: 6px; padding: 8px; display: grid; grid-template-columns: 16px minmax(0, 1fr); column-gap: 8px; align-items: start; font-weight: 400; }
+.atalho::before, .op::before { content: "✓"; color: transparent; font-weight: 600; }
+.atalho[aria-checked="true"]::before, .op[aria-checked="true"]::before { color: var(--primary); }
+.pop.lista { width: min(260px, calc(100% - 16px)); padding: 6px; gap: 4px; }
+.pop.lista .small { padding: 4px 8px 6px; }
+.atalho > *, .op > * { grid-column: 2; }
+.atalho b { font-weight: 500; }
+.atalho:hover, .op:hover { background: var(--accent); }
+.op { align-items: center; padding: 6px 8px; }
+.op .lin { display: flex; align-items: center; gap: 8px; }
+.ops.dois { display: grid; grid-template-columns: 1fr 1fr; }
+.am { display: inline-block; flex: none; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--border); }
+.temas { display: flex; flex-direction: column; gap: 14px; }
+
+/* the map: canvas with a dot grid that follows zoom and pan */
+.stage { flex: 1 1 0; min-height: 0; position: relative; overflow: hidden; --sh: 38px; }
+#svg:focus { outline: none; }
+#svg:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+/* a click also focuses: while the last interaction was a pointer, no browser focus ring on the map, its nodes or the sheet */
+[data-foco-ponteiro] #svg, [data-foco-ponteiro] #svg *, [data-foco-ponteiro] .stage, [data-foco-ponteiro] .sheet { outline: none !important; }
+[data-foco-ponteiro] .n:focus-visible:not(.eu) .anel { display: none; }
+.stage, .sheet { outline: none; }
+#svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; font-family: var(--body); touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+.stage.pan #svg { cursor: grabbing; }
+#pontos circle { fill: var(--canvas-dot); }
+.grade { fill: url(#pontos); stroke: none; pointer-events: none; }
+.n { cursor: pointer; transition: opacity 0.12s; outline: none; }
+.n .box { fill: var(--cat, var(--muted)); stroke: none; }
+.n .disc { fill: var(--card); stroke: var(--border); stroke-width: 1; vector-effect: non-scaling-stroke; }
+.n .hit { fill: transparent; stroke: none; }
+.n text { fill: var(--foreground); font-size: var(--nf, 12.5px); font-weight: 500; pointer-events: none; }
+/* a good's name carries a halo in the canvas color, so a link passing behind it disappears instead of striking it through */
+.n.g text { paint-order: stroke; stroke: var(--canvas); stroke-width: 5px; stroke-linejoin: round; }
+.n.b text { fill: #ffffff; font-weight: 600; }
+.n.b.lock .box { fill-opacity: 0.45; }
+.n.b.lock text { fill: var(--foreground); }
+.n.b.off .box { fill: var(--muted); fill-opacity: 1; }
+.n.b.off text { fill: var(--foreground); opacity: 0.8; }
+/* the ring is state: pinned node and keyboard focus */
+.n .anel { fill: none; stroke: var(--primary); stroke-width: 2; vector-effect: non-scaling-stroke; display: none; }
+.n.eu .anel, .n:focus-visible .anel { display: block; }
+.e { fill: none; stroke: var(--link); stroke-width: 1; vector-effect: non-scaling-stroke; transition: opacity 0.12s; }
+.e.fut { stroke-dasharray: 6 5; }
+.e.up { stroke: var(--in); }
+.e.dn { stroke: var(--out); }
+.e.w1 { stroke-width: 3; }
+.e.w2 { stroke-width: 2; }
+.e.w3 { stroke-width: 1.3; }
+.q { display: none; fill: var(--foreground); font-family: var(--mono); font-size: var(--qf, 11px); font-weight: 500; paint-order: stroke; stroke: var(--canvas); stroke-width: 3.5px; stroke-linejoin: round; pointer-events: none; }
+.lod-near .q, .q.hv { display: block; }
+.q.up { fill: var(--in); }
+.q.dn { fill: var(--out); }
+#arr path { fill: var(--link); }
+#arru path { fill: var(--in); }
+#arrd path { fill: var(--out); }
+#svg.hov .e:not(.hv) { opacity: 0.25; }
+#svg.hov .q:not(.hv) { opacity: 0.25; }
+#svg.hov .n:not(.hv) { opacity: 0.25; }
+
+.tip { position: absolute; z-index: 7; pointer-events: none; max-width: 340px; background: var(--popover); color: var(--foreground); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--sombra); padding: 8px 10px; font-size: 12px; line-height: 1.35; }
+.tip b { font-weight: 600; font-size: 13px; }
+.tip .r { margin-top: 5px; }
+.tip .hd { display: flex; align-items: center; gap: 7px; }
+.tip img.ic { width: 22px; height: 22px; }
+
+.float { position: absolute; z-index: 3; bottom: calc(var(--sh) + 12px); }
+.zoom { right: 12px; display: inline-flex; border: 1px solid var(--border); border-radius: 8px; background: var(--background); box-shadow: var(--sombra); overflow: hidden; }
+.zoom button { background: none; border: 0; border-left: 1px solid var(--border); height: 32px; padding: 0 11px; color: var(--foreground); }
+.zoom button:first-child { border-left: 0; }
+.zoom button:hover { background: var(--accent); }
+.legend { left: 12px; font-size: 12px; color: var(--muted-foreground); background: var(--popover); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--sombra); max-width: min(360px, calc(100% - 170px)); max-height: calc(100% - var(--sh) - 30px); overflow-y: auto; }
+.legend summary { cursor: pointer; padding: 7px 12px; color: var(--foreground); font-weight: 500; list-style-position: inside; border-radius: 10px; }
+.legend summary:hover { background: var(--accent); }
+.legend .items { display: flex; flex-direction: column; gap: 5px; padding: 2px 12px 10px; }
+.legend .items > span { display: flex; align-items: center; gap: 8px; }
+.legend .cats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; padding: 8px 12px 10px; border-top: 1px solid var(--border); }
+.legend .cats span { display: flex; align-items: center; gap: 6px; }
+.lg { display: inline-block; flex: none; width: 24px; height: 12px; border-radius: 4px; }
+.lg.bld { background: #7c3aed; }
+.lg.lock { background: #7c3aed; opacity: 0.45; }
+.lg.good { width: 14px; height: 14px; margin: 0 5px; border-radius: 50%; background: var(--card); border: 1px solid var(--border); }
+svg.lgl { flex: none; }
+svg.lgl line { stroke: var(--link); stroke-width: 1.5; }
+svg.lgl.fut line { stroke-dasharray: 5 4; }
+svg.lgl.up line { stroke: var(--in); stroke-width: 3; }
+svg.lgl.dn line { stroke: var(--out); stroke-width: 3; }
+/* technology dot: filled = within your era, faint = beyond it */
+.pt { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--border); margin-right: 6px; }
+.pt.on { background: var(--muted-foreground); }
+
+/* the sheet */
+.sheet { position: absolute; z-index: 5; left: 0; right: 0; bottom: 0; background: var(--card); border-top: 1px solid var(--border); border-radius: 10px 10px 0 0; box-shadow: 0 -4px 12px -6px rgb(0 0 0 / 0.12); display: flex; flex-direction: column; max-height: calc(100% - 40px); }
+.sheet:not(.foco) { border-radius: 0; }
+.grip { flex: none; height: 12px; cursor: ns-resize; touch-action: none; display: flex; align-items: center; justify-content: center; }
+.grip::before { content: ""; width: 40px; height: 4px; border-radius: 2px; background: var(--border); }
+.grip:hover::before, .grip:focus-visible::before { background: var(--muted-foreground); }
+.sh-head { flex: none; display: flex; flex-wrap: nowrap; align-items: center; gap: 4px; padding: 0 10px 8px 14px; min-width: 0; }
+.sheet:not(.foco) .sh-head { padding: 8px 14px; min-height: 38px; gap: 12px; }
+.sh-head .ttl { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1 1 0; }
+.sh-head .ttl img.ic { width: 28px; height: 28px; }
+.sh-head .ttl h2 { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 0 1 auto; }
+.sh-head .cat { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted-foreground); white-space: nowrap; min-width: 0; overflow: hidden; text-overflow: ellipsis; flex: 0 20 auto; }
+.sh-head .cat .sw { flex: none; }
+.sh-head .st { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1 1 0; text-align: right; }
+.sh-head .hint { flex: 0 1 auto; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; font-size: 13px; }
+.ttl h2.off { color: var(--muted-foreground); }
+.ttl .fora { font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+.eye[aria-pressed="false"] { color: var(--muted-foreground); }
+.tec { display: inline-flex; align-items: center; font-size: 12px; color: var(--muted-foreground); white-space: nowrap; }
+@media (max-width: 759px) { .sh-head .cat.merc { display: none; } }
+.sh-body { flex: 1 1 auto; min-height: 0; overflow: auto; border-top: 1px solid var(--border); font-size: 13px; }
+
+/* the table: the same tracks on every row; hairlines between rows; the row under the mouse takes the accent fill */
+.tb { display: grid; grid-template-columns: 38px minmax(210px, 30%) fit-content(36%) 46px minmax(0, 1fr); align-items: stretch; }
+.tb.merc { grid-template-columns: 38px minmax(210px, 36%) minmax(90px, max-content) 46px minmax(0, 1fr); }
+.tr { display: contents; cursor: default; }
+label.tr { cursor: pointer; }
+.tb .th, .tr > div { padding: 7px 8px; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 1px; border-bottom: 1px solid var(--border); }
+.tr:hover > div { background: var(--accent); }
+.tb .th { position: sticky; top: 0; z-index: 1; background: var(--card); font-size: 12px; font-weight: 500; color: var(--muted-foreground); flex-direction: row; justify-content: flex-start; align-items: baseline; gap: 10px; }
+.tb .th .sm { font-weight: 400; }
+.tb .c-mk { align-items: center; padding-right: 0; padding-left: 14px; }
+.tr > .c-nm { align-items: flex-start; }
+.tb .c-ar { align-items: center; padding-inline: 0; color: var(--muted-foreground); }
+.tr.tot > div { background: var(--muted); padding-block: 9px; }
+.tr.tot .tn { font-weight: 600; }
+.tr.des > div:not(.c-mk) > * { opacity: 0.5; }
+.tb .full { grid-column: 1 / -1; padding: 7px 14px; border-bottom: 1px solid var(--border); }
+.tb .gh { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 14px 14px 6px; border-bottom: 1px solid var(--border); }
+.tb .gh .gn { font-weight: 600; letter-spacing: -0.01em; }
+.tb .vazio { grid-column: 3 / -1; }
+.mn { font-weight: 500; }
+.note { font-size: 12px; color: var(--muted-foreground); }
+.warn { font-size: 12px; font-weight: 600; }
+.nx { font-size: 12px; color: var(--muted-foreground); }
+.us { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; min-width: 0; }
+.un { display: inline-flex; align-items: center; gap: 4px; white-space: nowrap; color: var(--foreground); font-weight: 400; }
+.un img.ic { width: 17px; height: 17px; }
+.un .qn, .qv { font-family: var(--mono); font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.un.in .qn, .qv.in { color: var(--in-t); }
+.un.out .qn, .qv.out { color: var(--out-t); }
+button.un { background: none; border: 0; border-radius: 4px; padding: 0; cursor: pointer; font: inherit; }
+button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
+.tb.merc .c-in { align-items: flex-end; }
+.link { background: none; border: 0; border-radius: 4px; padding: 0; text-align: left; color: var(--foreground); font-weight: 500; min-width: 0; overflow-wrap: anywhere; display: inline-flex; align-items: center; gap: 7px; }
+.link:hover { text-decoration: underline; text-underline-offset: 3px; }
+.bal { font-family: var(--mono); }
+/* mouse tip: the same grammar, in miniature */
+.rc { display: grid; grid-template-columns: fit-content(60%) auto minmax(0, 1fr); gap: 2px 0; align-items: center; min-width: 0; }
+.rc .ci, .rc .co { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; min-width: 0; }
+.rc .ar { display: flex; align-items: center; padding: 0 12px; color: var(--muted-foreground); }
+.rc .ar.vz { visibility: hidden; }
+/* phone: each method becomes a block; what goes in sits on top and what comes out below, with the same colors */
+@media (max-width: 759px) {
+  .tb, .tb.merc { grid-template-columns: 34px minmax(0, 1fr); }
+  .tb .th.c-mk, .tb .th.c-in, .tb .th.c-ar, .tb .th.c-out { display: none; }
+  .tb .th.c-nm { grid-column: 1 / -1; padding-left: 14px; }
+  .tr > .c-mk { grid-row: span 3; justify-content: flex-start; padding-top: 10px; padding-left: 10px; }
+  .tr > .c-nm, .tr > .c-in, .tr > .c-out, .tb .vazio { grid-column: 2; }
+  .tr > .c-nm, .tr > .c-in { border-bottom: 0; padding-bottom: 0; }
+  .tr > .c-ar { display: none; }
+  .tb.merc .c-in { align-items: flex-start; }
+}
+</style>
+
+<div class="app" id="app">
+  <div class="top" id="top">
+    <span class="brand" id="brand"></span>
+    <div class="search">
+      <input id="busca" type="search" autocomplete="off">
+      <div class="results" id="resultados" hidden></div>
+    </div>
+    <button type="button" class="tx" id="bmetodos" aria-expanded="false" aria-controls="pmetodos"></button>
+    <button type="button" class="tx so520" id="bera" aria-expanded="false" aria-controls="pera"></button>
+    <button type="button" class="tx" id="bfiltros" aria-expanded="false" aria-controls="pfiltros"></button>
+    <button type="button" class="chip" id="chip" hidden><span class="nm" id="chipnome"></span><svg class="ico x" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <span class="spacer"></span>
+    <button type="button" class="tx" id="btema" aria-expanded="false" aria-controls="ptema"></button>
+    <button type="button" class="tx so520" id="bidioma" aria-expanded="false" aria-controls="pidioma"></button>
+    <button type="button" class="tx" id="bajuda" aria-expanded="false" aria-controls="pajuda"></button>
+  </div>
+
+
+  <div class="pop" id="pmetodos" hidden></div>
+  <div class="pop" id="ptema" hidden></div>
+  <div class="pop lista" id="pera" hidden><div data-host="eras"></div></div>
+  <div class="pop lista" id="pidioma" hidden><div data-host="linguas"></div></div>
+  <div class="pop" id="pfiltros" hidden></div>
+  <div class="pop" id="pajuda" hidden></div>
+
+  <div class="stage" id="stage">
+    <svg id="svg" xmlns="http://www.w3.org/2000/svg" role="group" tabindex="0">
+      <defs id="defs">
+        <pattern id="pontos" width="20" height="20" patternUnits="userSpaceOnUse"><circle cx="10" cy="10" r="1.5"/></pattern>
+        <marker id="arr" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0.5 L8,4 L0,7.5 Z"/></marker>
+        <marker id="arru" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0.5 L8,4 L0,7.5 Z"/></marker>
+        <marker id="arrd" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0.5 L8,4 L0,7.5 Z"/></marker>
+      </defs>
+      <g id="vp"></g>
+    </svg>
+    <div class="tip" id="tip" hidden></div>
+    <details class="legend float" id="legenda"></details>
+    <div class="zoom float" id="zoom">
+      <button type="button" id="zmenos">−</button>
+      <button type="button" id="zfit"></button>
+      <button type="button" id="zmais">+</button>
+    </div>
+    <aside class="sheet" id="sheet" aria-live="polite"></aside>
+  </div>
+</div>
+
+<script type="application/json" id="dados">/*DADOS*/</script>
+<script>
+(function () {
+  'use strict';
+  var D = JSON.parse(document.getElementById('dados').textContent);
+
+  // ---------- interface messages (game terms come from the game files, in D.termos) ----------
+  // A value that is a pair is [singular, plural], chosen by the parameter n.
+  var MSG = {
+    en: {
+      titulo: 'Victoria 3 Production Graph', brand: 'Production graph',
+      search_ph: 'Search ( / )', search_aria: 'Search a good or a building', search_none: 'No good or building with that name.', k_good: 'good',
+      custom: 'Custom', a_methods: 'Production methods: {v}', a_era: 'Technology era: {v}', a_filters: ['Filters, {n} active', 'Filters, {n} active'], a_lang: 'Language: {v}', f_vis: '{a} of {b} categories visible', f_reset: 'Restore defaults', unpin: 'Release node', filters: 'Filters', help_aria: 'Help and rules', lang: 'Language',
+      chain: 'Highlighted chain', dir_back: 'Upstream', dir_both: 'Both', dir_fwd: 'Downstream', step1: '1 step', step_n: '{n} steps', step_all: 'Whole chain', theme: 'Theme', base: 'Base', accent_t: 'Accent', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'None', d_violeta: 'Violet', d_esmeralda: 'Emerald', d_rosa: 'Rose', d_ambar: 'Amber', mode: 'Mode', mode_auto: 'Automatic', mode_light: 'Light', mode_dark: 'Dark',
+      prefs: 'Preferences', isolate: 'Isolate chain', show_all: 'Show everything', help: 'Help', era_opt_all: 'All eras', era_opt: 'Up to era {e}', era_aria: 'My technologies go up to era',
+      dir_aria: 'Direction of the chain', steps_aria: 'How far to follow the chain',
+      sc_title: 'Tick methods in every building', sc_note: 'These are shortcuts, not modes: after using one, tick and untick freely in each building’s sheet.',
+      sc_tudo: 'Everything', sc_tudo_d: 'Every method of every building. The graph shows all the game allows.',
+      sc_basico: 'Basic', sc_basico_d: 'One method per group: the first. Optional groups stay off.',
+      sc_fim: 'Late game', sc_fim_d: 'One method per group: the last on the list.', sc_last: 'last used; the selection changed since',
+      cats_title: 'Building categories on the graph', general_chk: 'Show general inputs',
+      general_note: 'A general input is one a building only consumes through a support group (automation, rail transport, harvesting machines, fences). Unticked, they stay off the drawing and off the highlighted chains.',
+      era_title: 'My technologies go up to era', era_all: 'All', era_save: 'My save ({y})', era_note: 'Whatever needs a technology from a later era is drawn dashed or faded.',
+      help_intro: 'Victoria 3, version {v}. Raw materials on the left, final products on the right. Every amount is per building level, per week.',
+      read_title: 'How to read it',
+      read1: 'The graph shows the union of every ticked production method: every link that some of them makes possible.',
+      read2: 'A filled block is a building, and its color is the category; an icon with a label is a good. Blue amounts go into a building; orange ones come out.',
+      read3: 'A building uses one method per group. With more than one ticked in the same group, the amount becomes a range: “40–100” is the minimum and the maximum among the ticked combinations; “up to 15” means it is zero in some combination.',
+      read4: 'Solid link: possible with the technologies you have. Dashed: needs a future technology. A building you cannot build yet is faded. In the tables, a filled dot marks a technology you have and a faint one, a technology you lack. Pick your era on the top bar.',
+      use_title: 'How to use it',
+      use1: 'Mouse wheel or pinch zooms; drag to move. From 100% zoom on, every amount is shown.',
+      use2: 'Hovering a node lights up its chain: one step each way by default.',
+      use3: 'Clicking pins the highlight and opens the node’s sheet below. For a building, the sheet has one row per method with a checkbox; unticking redraws at once. Drag the top edge of the sheet to change its height.',
+      use4: 'With a node pinned, the controls on the right of the sheet header pick the direction and how far the chain goes (1, 2, 3 steps or the whole chain; the choice is remembered); “Isolate” hides the rest. Click the empty map or the ✕ to release the node.',
+      keys_title: 'Shortcuts', k_search: 'search', k_esc: 'release the node', k_fit: 'fit', k_zoom: 'zoom',
+      general_title: 'General inputs',
+      general_text: 'What a building only consumes through a support group (a secondary group that does not change what it produces: automation, rail transport, harvesting machines, fences) stays off the drawing and off the highlighted chains. “Show general inputs”, in Filters, draws them all. The node’s sheet always shows the whole recipe.',
+      help_foot: 'Laws, power bloc principles and regions are not simulated: a method that depends on them carries a note. What you tick is stored in this browser.',
+      fan: 'Fan-made tool, not affiliated with Paradox Interactive. Victoria 3 names and icons belong to Paradox Interactive.',
+      privacy: 'No ads, no cookies. Anonymous visit counts only (Vercel Web Analytics).', data: 'Data read from game version {v}, generated on {d}.', repo: 'Source code',
+      legend: 'Legend', lg_good: 'good', lg_bld: 'building: in from the left, out to the right; the fill is its category', lg_lock: 'building you cannot build yet',
+      lg_ln: 'link possible with your technologies', lg_fut: 'link that needs a future technology', lg_up: 'upstream: what this is made of', lg_dn: 'downstream: where this goes',
+      lg_have: 'technology you have', lg_miss: 'technology you lack',
+      zoom: 'Zoom', zoom_out: 'Zoom out', zoom_in: 'Zoom in', fit: 'Fit', graph_aria: 'Production graph', node_b: 'Building {n}', node_g: 'Good {n}',
+      hint: 'Hover a node to see its chain; click to pin it and choose methods.',
+      tb_method: 'Method', tb_in: 'In', tb_out: 'Out', per: 'per level, per week', total: 'Total',
+      combos: ['{n} combination', '{n} combinations'], combos_tip: '{n} combinations of ticked methods; ranges go from the minimum to the maximum among them.',
+      balance: 'balance', balance_tip: 'Outputs minus inputs at base price, per level per week, before wages. Real prices move with supply and demand.',
+      no_goods_marked: 'uses and produces no goods with the ticked methods', not_queue: 'Not built through the construction queue; it appears by other rules of the game.',
+      cat_off: 'The category “{c}” is switched off in Filters.', no_combo: 'No valid combination: a ticked method requires another one that is unticked.',
+      support: 'support group', no_method: 'No method ticked: this group is left out of the sums.', no_goods: 'does not touch goods',
+      act_todos: 'all', act_basico: 'basic', act_fim: 'late game',
+      tb_building: 'Building', tb_consumes: 'Consumes', tb_produces: 'Produces', who_prod: 'Producers', who_cons: 'Consumers',
+      n_bld: ['{n} building', '{n} buildings'], none_prod: 'No building with the ticked methods.', unticked: 'With unticked methods: ',
+      none_cons: 'No building. Outside buildings, the buyers are the population, the government and the army.',
+      f_general: 'general input', f_future: 'future technology', f_off: 'off the graph',
+      st_b: ['{n} building', '{n} buildings'], st_g: ['{n} good', '{n} goods'], st_e: ['{n} link', '{n} links'], st_fut: '({n} needing future technology)',
+      st_out: ['{n} general input not drawn', '{n} general inputs not drawn'], st_chain: ['{n} node in the highlighted chain', '{n} nodes in the highlighted chain'],
+      grip: 'Sheet height: drag, or use the up and down arrows', sheet_open: 'Expand panel', sheet_close: 'Collapse panel',
+      eye: 'Building on the graph', eye_on: 'On the graph. Click to remove this building from the drawing; the ticked methods are kept.', eye_off: 'Off the graph. Click to include it again.', off_badge: 'off the graph',
+      no_tech: 'no technology', era: 'era', has: '(you have it)', lacks: '(you lack it)',
+      merc: '{c} good · base price £{p}', gc_staple: 'staple', gc_industrial: 'industrial', gc_luxury: 'luxury', gc_military: 'military',
+      tip_cant: 'cannot build yet', tip_none: 'uses and produces no goods', tip_price: 'base price',
+      tip_prod: ['{n} building produces it', '{n} buildings produce it'], tip_cons: ['{n} consumes it', '{n} consume it'],
+      upto: 'up to {v}', un_tip: '{n}: {q} per building level, per week', un_general: 'General input: only comes in through a support group', un_future: 'Needs a future technology', un_click: 'Click to open the good.',
+      nt_principle: 'only with a power bloc principle', nt_identity: 'only with a certain power bloc identity', nt_law: 'requires law: {l}', nt_nolaw: 'banned under law: {l}',
+      nt_religion: 'depends on religion', nt_company: 'depends on the kind of company', nt_region: 'only in certain regions', nt_needs: 'stops without {g}', nt_req: 'requires the method {m}', or: ' or ',
+      ef_infrastructure: 'infrastructure', ef_innovation: 'innovation per week', ef_bureaucracy: 'bureaucracy', ef_tax: 'tax capacity', ef_trade: 'trade capacity', ef_construction: 'construction',
+      ef_ship: 'ship construction', ef_minting: 'minting', ef_influence: 'influence', ef_authority: 'authority', ef_prestige: 'prestige', ef_convoys: 'convoys',
+      cat_industry: 'Industry', cat_agro: 'Farms and ranches', cat_mines: 'Mines', cat_plantations: 'Plantations', cat_resources: 'Other resources', cat_infrastructure: 'Private infrastructure',
+      cat_urban: 'Urban centers', cat_government: 'Government', cat_military: 'Military', cat_construction: 'Construction', cat_subsistence: 'Subsistence', cat_canals: 'Canals',
+      cat_monuments: 'Monuments', cat_companies: 'Company headquarters', cat_other: 'Other'
+    },
+    pt: {
+      titulo: 'Grafo de Produção do Victoria 3', brand: 'Grafo de produção',
+      search_ph: 'Buscar ( / )', search_aria: 'Buscar mercadoria ou edifício', search_none: 'Nenhuma mercadoria ou edifício com esse nome.', k_good: 'mercadoria',
+      custom: 'Personalizado', a_methods: 'Métodos de produção: {v}', a_era: 'Era das tecnologias: {v}', a_filters: ['Filtros, {n} ativo', 'Filtros, {n} ativos'], a_lang: 'Idioma: {v}', f_vis: '{a} de {b} categorias visíveis', f_reset: 'Restaurar padrão', unpin: 'Soltar nó', filters: 'Filtros', help_aria: 'Ajuda e regras', lang: 'Idioma',
+      chain: 'Cadeia realçada', dir_back: 'Para trás', dir_both: 'As duas', dir_fwd: 'Para a frente', step1: '1 passo', step_n: '{n} passos', step_all: 'Cadeia inteira', theme: 'Tema', base: 'Base', accent_t: 'Destaque', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'Nenhuma', d_violeta: 'Violeta', d_esmeralda: 'Esmeralda', d_rosa: 'Rosa', d_ambar: 'Âmbar', mode: 'Modo', mode_auto: 'Automático', mode_light: 'Claro', mode_dark: 'Escuro',
+      prefs: 'Preferências', isolate: 'Isolar cadeia', show_all: 'Mostrar tudo', help: 'Ajuda', era_opt_all: 'Todas as eras', era_opt: 'Até a era {e}', era_aria: 'Minhas tecnologias vão até a era',
+      dir_aria: 'Direção da cadeia', steps_aria: 'Até onde seguir a cadeia',
+      sc_title: 'Marcar métodos em todos os edifícios', sc_note: 'São atalhos, não modos: depois de usar um, marque e desmarque à vontade na folha de cada edifício.',
+      sc_tudo: 'Tudo', sc_tudo_d: 'Todos os métodos de todos os edifícios. O grafo mostra tudo o que o jogo permite.',
+      sc_basico: 'Básico', sc_basico_d: 'Um método por grupo: o primeiro. Grupos opcionais ficam desligados.',
+      sc_fim: 'Fim de jogo', sc_fim_d: 'Um método por grupo: o último da lista.', sc_last: 'último usado; a seleção mudou desde então',
+      cats_title: 'Categorias de edifício no grafo', general_chk: 'Mostrar insumos gerais',
+      general_note: 'Insumo geral é o que um edifício só consome por um grupo de apoio (automação, transporte ferroviário, máquinas de colheita, cercas). Desmarcado, ficam fora do desenho e das cadeias realçadas.',
+      era_title: 'Minhas tecnologias vão até a era', era_all: 'Todas', era_save: 'Meu save ({y})', era_note: 'O que exigir tecnologia de era posterior aparece tracejado ou apagado.',
+      help_intro: 'Victoria 3, versão {v}. Matéria-prima à esquerda, produto final à direita. Toda quantidade é por nível do edifício, por semana.',
+      read_title: 'Como ler',
+      read1: 'O grafo mostra a união de todos os métodos de produção marcados: toda ligação que algum deles torna possível.',
+      read2: 'Bloco cheio é edifício, e a cor é a categoria dele; ícone com rótulo é mercadoria. Quantidade em azul entra no edifício; em laranja, sai.',
+      read3: 'Cada edifício usa um método por grupo. Com mais de um marcado no mesmo grupo, a quantidade vira uma faixa: “40–100” é o mínimo e o máximo entre as combinações marcadas; “até 15” quer dizer que em alguma combinação é zero.',
+      read4: 'Ligação cheia: dá para fazer com as tecnologias que você tem. Tracejada: depende de tecnologia futura. O edifício que você ainda não pode construir fica esmaecido. Nas tabelas, o ponto cheio marca tecnologia que você tem e o ponto apagado, a que falta. Escolha a sua era na barra do topo.',
+      use_title: 'Como usar',
+      use1: 'Roda do mouse ou pinça aproxima; arrastar move. A partir de 100% de zoom todas as quantidades aparecem.',
+      use2: 'Passar o mouse num nó acende a cadeia dele: um passo para cada lado, por padrão.',
+      use3: 'Clicar fixa o realce e abre a folha do nó embaixo. Num edifício, a folha traz uma linha por método com uma caixa de marcar; desmarcar redesenha na hora. Arraste a borda de cima da folha para mudar a altura.',
+      use4: 'Com um nó fixado, os controles à direita do cabeçalho da folha escolhem a direção e até onde a cadeia vai (1, 2, 3 passos ou a cadeia inteira; a escolha fica guardada); “Isolar” esconde o resto. Clicar no vazio ou no ✕ solta o nó.',
+      keys_title: 'Atalhos', k_search: 'buscar', k_esc: 'soltar o nó', k_fit: 'ajustar', k_zoom: 'zoom',
+      general_title: 'Insumos gerais',
+      general_text: 'O que um edifício só consome por um grupo de apoio (grupo secundário que não muda o que ele produz: automação, transporte ferroviário, máquinas de colheita, cercas) fica fora do desenho e das cadeias realçadas. “Mostrar insumos gerais”, em Filtros, desenha todos. A folha do nó sempre mostra a receita inteira.',
+      help_foot: 'Leis, princípios de bloco e regiões não são simulados: o método que depende deles traz uma nota. O que você marca fica guardado neste navegador.',
+      fan: 'Ferramenta de fã, sem vínculo com a Paradox Interactive. Os nomes e ícones de Victoria 3 pertencem à Paradox Interactive.',
+      privacy: 'Sem anúncios, sem cookies. Só contagem anônima de visitas (Vercel Web Analytics).', data: 'Dados lidos da versão {v} do jogo, gerados em {d}.', repo: 'Código-fonte',
+      legend: 'Legenda', lg_good: 'mercadoria', lg_bld: 'edifício: entra pela esquerda, sai pela direita; a cor é a categoria', lg_lock: 'edifício que você ainda não pode construir',
+      lg_ln: 'ligação possível com as suas tecnologias', lg_fut: 'ligação que depende de tecnologia futura', lg_up: 'a montante: do que isto é feito', lg_dn: 'a jusante: para onde isto vai',
+      lg_have: 'tecnologia que você tem', lg_miss: 'tecnologia que falta',
+      zoom: 'Zoom', zoom_out: 'Afastar', zoom_in: 'Aproximar', fit: 'Ajustar', graph_aria: 'Grafo de produção', node_b: 'Edifício {n}', node_g: 'Mercadoria {n}',
+      hint: 'Passe o mouse num nó para ver a cadeia dele; clique para fixar e escolher métodos.',
+      tb_method: 'Método', tb_in: 'Entra', tb_out: 'Sai', per: 'por nível, por semana', total: 'Total',
+      combos: ['{n} combinação', '{n} combinações'], combos_tip: '{n} combinações de métodos marcados; as faixas vão do mínimo ao máximo entre elas.',
+      balance: 'saldo', balance_tip: 'Produtos menos insumos, a preço base, por nível por semana, antes de salários. O preço real muda com oferta e procura.',
+      no_goods_marked: 'não usa nem produz mercadoria com os métodos marcados', not_queue: 'Não se constrói pela fila de obras; surge por outras regras do jogo.',
+      cat_off: 'A categoria “{c}” está desligada em Filtros.', no_combo: 'Nenhuma combinação válida: algum método marcado exige outro que está desmarcado.',
+      support: 'grupo de apoio', no_method: 'Nenhum método marcado: este grupo não entra na conta.', no_goods: 'não mexe em mercadorias',
+      act_todos: 'todos', act_basico: 'básico', act_fim: 'fim de jogo',
+      tb_building: 'Edifício', tb_consumes: 'Consome', tb_produces: 'Produz', who_prod: 'Quem produz', who_cons: 'Quem consome',
+      n_bld: ['{n} edifício', '{n} edifícios'], none_prod: 'Nenhum edifício com os métodos marcados.', unticked: 'Com métodos desmarcados: ',
+      none_cons: 'Nenhum edifício. Fora deles, quem compra são a população, o governo e o exército.',
+      f_general: 'insumo geral', f_future: 'tecnologia futura', f_off: 'fora do grafo',
+      st_b: ['{n} edifício', '{n} edifícios'], st_g: ['{n} mercadoria', '{n} mercadorias'], st_e: ['{n} ligação', '{n} ligações'], st_fut: '({n} com tecnologia futura)',
+      st_out: ['{n} insumo geral fora do desenho', '{n} insumos gerais fora do desenho'], st_chain: ['{n} nó na cadeia realçada', '{n} nós na cadeia realçada'],
+      grip: 'Altura da folha: arraste ou use as setas para cima e para baixo', sheet_open: 'Expandir painel', sheet_close: 'Recolher painel',
+      eye: 'Edifício no grafo', eye_on: 'No grafo. Clique para tirar este edifício do desenho; os métodos marcados ficam guardados.', eye_off: 'Fora do grafo. Clique para voltar a incluir.', off_badge: 'fora do grafo',
+      no_tech: 'sem tecnologia', era: 'era', has: '(já tem)', lacks: '(falta)',
+      merc: 'mercadoria {c} · preço base £{p}', gc_staple: 'básica', gc_industrial: 'industrial', gc_luxury: 'de luxo', gc_military: 'militar',
+      tip_cant: 'ainda não pode construir', tip_none: 'não usa nem produz mercadoria', tip_price: 'preço base',
+      tip_prod: ['{n} edifício produz', '{n} edifícios produzem'], tip_cons: ['{n} consome', '{n} consomem'],
+      upto: 'até {v}', un_tip: '{n}: {q} por nível do edifício, por semana', un_general: 'Insumo geral: só entra por grupo de apoio', un_future: 'Depende de tecnologia futura', un_click: 'Clique para ver a mercadoria.',
+      nt_principle: 'só com princípio de bloco de poder', nt_identity: 'só com certa identidade de bloco de poder', nt_law: 'exige lei: {l}', nt_nolaw: 'proibido com a lei: {l}',
+      nt_religion: 'depende da religião', nt_company: 'depende do tipo de companhia', nt_region: 'só em certas regiões', nt_needs: 'para sem {g}', nt_req: 'exige o método {m}', or: ' ou ',
+      ef_infrastructure: 'infraestrutura', ef_innovation: 'inovação por semana', ef_bureaucracy: 'burocracia', ef_tax: 'capacidade tributária', ef_trade: 'capacidade de comércio', ef_construction: 'construção',
+      ef_ship: 'construção naval', ef_minting: 'cunhagem', ef_influence: 'influência', ef_authority: 'autoridade', ef_prestige: 'prestígio', ef_convoys: 'comboios',
+      cat_industry: 'Indústria', cat_agro: 'Fazendas e ranchos', cat_mines: 'Minas', cat_plantations: 'Plantações', cat_resources: 'Outros recursos', cat_infrastructure: 'Infraestrutura privada',
+      cat_urban: 'Centros urbanos', cat_government: 'Governo', cat_military: 'Militar', cat_construction: 'Obras', cat_subsistence: 'Subsistência', cat_canals: 'Canais',
+      cat_monuments: 'Monumentos', cat_companies: 'Sedes de companhias', cat_other: 'Outros'
+    }
+  };
+  var lingua = 'en', loc = 'en-US';
+  function t(k, p) {
+    var s = (MSG[lingua] || MSG.en)[k];
+    if (s === undefined) s = MSG.en[k];
+    if (s === undefined) return k;
+    if (Array.isArray(s)) s = s[p && p.n === 1 ? 0 : 1];
+    return p ? s.replace(/\{(\w+)\}/g, function (m, x) { return p[x] !== undefined ? p[x] : m; }) : s;
+  }
+  // game term in the active language; English when that language lacks it
+  function N(k) { var T = D.termos; return (T[lingua] && T[lingua][k]) || T.en[k] || k; }
+  var nomeG = function (id) { return N('g:' + id); };
+  // languages where a common noun goes lowercase in running text (not German; not relevant for CJK)
+  var MINUSC = { en: 1, pt: 1, es: 1, fr: 1, pl: 1, ru: 1, tr: 1 };
+  var minus = function (s) { return MINUSC[lingua] ? s.toLocaleLowerCase(loc) : s; };
+
+  var IC = D.icones || {};
+  var SAVE = D.save ? new Set(D.save.techs) : null;
+  var G = {}, B = {};
+  D.goods.forEach(function (g, i) { g.ord = i; G[g.id] = g; });
+  D.blds.forEach(function (b, i) {
+    b.ord = i; B[b.id] = b;
+    // support group: a secondary group in which no method touches production (automation, transport, harvesting…)
+    b.gr.forEach(function (g, gi) {
+      g.sup = gi > 0 && g.ms.every(function (m) { return !Object.keys(m.o).length; });
+    });
+  });
+  // one fill per building category: the whole block takes it, with the name in white. Same colors in both themes.
+  var CATCOR = {industry: '#7c3aed', agro: '#4d7c0f', plantations: '#047857', mines: '#57534e', resources: '#a16207', infrastructure: '#be123c', urban: '#a21caf', government: '#475569', military: '#b91c1c', construction: '#0e7490', subsistence: '#3f6212', canals: '#0369a1', monuments: '#9a3412', companies: '#52525b'};
+  var corCat = function (c) { return CATCOR[c] || '#52525b'; };
+  var nomeCat = function (c) { return t('cat_' + c); };
+
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
+  var fmt = function (n) { return (Math.round(n * 100) / 100).toLocaleString(loc); };
+  // amount across the ticked combinations: a single number, a range, or "up to" when the minimum is zero
+  var faixa = function (a, b) { return Math.abs(a - b) < 1e-9 ? fmt(b) : a <= 1e-9 ? t('upto', { v: fmt(b) }) : fmt(a) + '–' + fmt(b); };
+  var norm = function (s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
+  var ROM = ['', 'I', 'II', 'III', 'IV', 'V'];
+  var eraDe = function (x) { return D.techs[x] || 0; };
+  // which technologies count as "have": everything (era 0), up to an era, or the exact list of a save
+  var era = 0;
+  var temTec = function (x) { return era === 'save' ? SAVE.has(x) : era === 0 || eraDe(x) <= era; };
+  var techOk = function (ts) { return ts.every(temTec); };
+  var nomeNo = function (id) { return id[0] === 'g' ? nomeG(id.slice(2)) : N(id.slice(2)); };
+  var entre = function (v, a, b) { return Math.min(b, Math.max(a, v)); };
+  var img = function (id) { return IC[id] ? '<img class="ic" alt="" src="' + IC[id] + '">' : ''; };
+  var ICONES = {
+    layers: '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
+    hourglass: '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
+    funnel: '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
+    palette: '<path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><path d="M13.5 6.5h.01M17.5 10.5h.01M8.5 7.5h.01M6.5 12.5h.01"/>',
+    globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    chev: '<path d="m6 9 6 6 6-6"/>',
+    arrowL: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
+    arrowR: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
+    arrowLR: '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
+    scan: '<circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>',
+    chevsDown: '<path d="m7 6 5 5 5-5"/><path d="m7 13 5 5 5-5"/>',
+    chevsUp: '<path d="m17 11-5-5-5 5"/><path d="m17 18-5-5-5 5"/>',
+    x: '<path d="M18 6 6 18"/><path d="m6 6 12 12"/>',
+    help: '<circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/>'
+  };
+  // icon of a trigger; "ponto" adds the primary dot that says the control is away from its default
+  var ico = function (nome, ponto, cheio) { return '<span class="icw"><svg class="ico' + (cheio ? ' cheio' : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICONES[nome] + '</svg>' + (ponto ? '<i class="dotp"></i>' : '') + '</span>'; };
+  var svgIco = function (nome, cls) { return '<svg class="ico' + (cls ? ' ' + cls : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + ICONES[nome] + '</svg>'; };
+  var CARET = svgIco('chev', 'tri');
+  var SETA = '<svg viewBox="0 0 24 14" width="20" height="12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 7h19M15 1.5l6 5.5-6 5.5"/></svg>';
+  // text width in "Latin letters": CJK and kana glyphs are about twice as wide
+  var largo = function (ch) { return ch.charCodeAt(0) > 0x2e7f ? 1.8 : 1; };
+  var largura = function (s) { var w = 0, i; for (i = 0; i < s.length; i++) w += largo(s[i]); return w; };
+  var corta = function (s, n) { if (largura(s) <= n) return s; var w = 0, i; for (i = 0; i < s.length; i++) { w += largo(s[i]); if (w > n - 1) break; } return s.slice(0, i) + '…'; };
+
+  var stage = $('stage'), svg = $('svg'), vp = $('vp'), sheet = $('sheet'), tip = $('tip');
+
+  // icons go once into <defs>; each node only points at its own
+  (function () {
+    var h = '';
+    Object.keys(IC).forEach(function (id) { h += '<symbol id="i-' + id.replace(':', '-') + '" viewBox="0 0 40 40"><image width="40" height="40" href="' + IC[id] + '"/></symbol>'; });
+    $('defs').insertAdjacentHTML('beforeend', h);
+  })();
+
+  // ---------- state ----------
+  var M = {};            // building -> per group, list of true/false: method ticked
+  var fora = new Set();  // buildings removed from the graph by hand
+  var atalho = 'tudo';   // last global shortcut used
+  var foco = null;       // pinned node (null = none)
+  var isolado = false;   // true = only the chain of the pinned node is drawn
+  var sobre = null;      // node under the mouse or with keyboard focus
+  var dir = 'ambos';     // 'tras' | 'ambos' | 'frente'
+  var passos = 1;        // how far the chain goes: 1, 2, 3 steps, or 0 = whole chain
+  var gerais = false;    // draw general inputs
+  var recolhida = false; // sheet collapsed
+  var altura = 0;        // sheet height chosen by hand (0 = default)
+  var BASES = ['neutral', 'stone', 'zinc', 'slate'], DESTAQUES = ['none', 'violeta', 'esmeralda', 'rosa', 'ambar'];
+  var base = 'neutral';  // the set of neutrals
+  var destaque = 'none'; // accent color: replaces primary, primary-foreground and ring
+  var modo = 'auto';     // light or dark, only on the hosted site ('auto' follows the system); in the artifact the host decides
+  // changing theme only swaps tokens: nothing is redrawn and the camera does not move
+  function aplicaPele() {
+    var r = document.documentElement;
+    if (base === 'neutral') r.removeAttribute('data-base'); else r.setAttribute('data-base', base);
+    if (destaque === 'none') r.removeAttribute('data-destaque'); else r.setAttribute('data-destaque', destaque);
+    if (D.site) { if (modo === 'auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', modo); }
+  }
+  var ocultas = new Set(D.ocultas);
+  var R = {};            // building -> recipe (ranges across ticked combinations)
+  var view = { k: 1, x: 0, y: 0 }, dims = { W: 1, H: 1 }, lod = '';
+  var conta = { nb: 0, ng: 0, ne: 0, fora: 0 };
+
+  // ---------- shortcuts ----------
+  // one method per group: 'basico' = the first; 'fim' = the last.
+  // Conditional methods (law, principle, region, company) are never picked; groups decided only by law stay on the default.
+  function escolhe(b, tipo) {
+    var ch = [];
+    b.gr.forEach(function (g, gi) {
+      var reqOk = function (m) {
+        return !m.req.length || m.req.some(function (r) {
+          return b.gr.some(function (g2, j) { return j < gi && g2.ms[ch[j]].id === r; });
+        });
+      };
+      var livre = function (m) { return !m.cond && reqOk(m); };
+      var b0 = g.ms.findIndex(livre);
+      if (b0 < 0) b0 = 0;
+      if (g.law) {
+        var d = g.ms.findIndex(function (m) { return livre(m) && m.def; });
+        if (d < 0) d = g.ms.findIndex(function (m) { return livre(m) && /default/.test(m.id); });
+        ch.push(d < 0 ? b0 : d);
+        return;
+      }
+      var pick = b0;
+      if (tipo !== 'basico') g.ms.forEach(function (m, i) { if (i > b0 && livre(m)) pick = i; });
+      ch.push(pick);
+    });
+    return ch;
+  }
+  var ATALHOS = ['tudo', 'basico', 'fim'];
+  function marcasDe(b, tipo) {
+    if (tipo === 'tudo') return b.gr.map(function (g) { return g.ms.map(function () { return true; }); });
+    var ch = escolhe(b, tipo);
+    return b.gr.map(function (g, gi) { return g.ms.map(function (m, mi) { return mi === ch[gi]; }); });
+  }
+  function aplicaAtalho(tipo) {
+    atalho = tipo;
+    D.blds.forEach(function (b) { M[b.id] = marcasDe(b, tipo); });
+  }
+  function difere() {
+    return D.blds.some(function (b) {
+      var p = marcasDe(b, atalho);
+      return p.some(function (l, gi) { return l.some(function (v, mi) { return v !== M[b.id][gi][mi]; }); });
+    });
+  }
+
+  // ---------- what is kept in the browser ----------
+  var CHAVE = 'vic3-grafo-producao-v3';
+  function salva() {
+    try {
+      var des = {};
+      D.blds.forEach(function (b) {
+        var l = [];
+        b.gr.forEach(function (g, gi) { g.ms.forEach(function (m, mi) { if (!M[b.id][gi][mi]) l.push(gi + ':' + m.id); }); });
+        if (l.length) des[b.id] = l;
+      });
+      localStorage.setItem(CHAVE, JSON.stringify({ atalho: atalho, ocultas: Array.from(ocultas), gerais: gerais, fora: Array.from(fora), desmarcados: des, altura: altura, era: era, lingua: lingua, base: base, destaque: destaque, modo: modo, dir: dir, passos: passos }));
+    } catch (e) { /* no storage: the page just does not remember */ }
+  }
+  var guardado = null;
+  function carrega() {
+    aplicaAtalho('tudo');
+    era = SAVE ? 'save' : 0;
+    try {
+      var o = guardado = JSON.parse(localStorage.getItem(CHAVE) || 'null');
+      if (!o) return;
+      if (ATALHOS.indexOf(o.atalho) >= 0) atalho = o.atalho;
+      if (Array.isArray(o.ocultas)) ocultas = new Set(o.ocultas.filter(function (c) { return D.cats.indexOf(c) >= 0; }));
+      gerais = !!o.gerais;
+      altura = Number(o.altura) || 0;
+      // a state stored by an older version (five themes) has no base nor accent: it falls back to the defaults
+      if (['tras', 'ambos', 'frente'].indexOf(o.dir) >= 0) dir = o.dir;
+      if ([0, 1, 2, 3].indexOf(o.passos) >= 0) passos = o.passos;
+      if (BASES.indexOf(o.base) >= 0) base = o.base;
+      if (DESTAQUES.indexOf(o.destaque) >= 0) destaque = o.destaque;
+      if (['auto', 'light', 'dark'].indexOf(o.modo) >= 0) modo = o.modo;
+      if (o.era === 'save' ? !!SAVE : [0, 1, 2, 3, 4, 5].indexOf(o.era) >= 0) era = o.era;
+      fora = new Set((o.fora || []).filter(function (id) { return B[id]; }));
+      Object.keys(o.desmarcados || {}).forEach(function (bid) {
+        var b = B[bid]; if (!b) return;
+        var s = new Set(o.desmarcados[bid]);
+        b.gr.forEach(function (g, gi) { g.ms.forEach(function (m, mi) { if (s.has(gi + ':' + m.id)) M[bid][gi][mi] = false; }); });
+      });
+    } catch (e) { aplicaAtalho('tudo'); }
+  }
+  // language: the #anchor wins, then the stored one, then the page default (artifact) or the browser's (site), then English
+  var temLingua = function (c) { return D.linguas.some(function (l) { return l[0] === c; }); };
+  function linguaInicial() {
+    var h = (location.hash || '').replace('#', '').toLowerCase();
+    if (temLingua(h)) return h;
+    if (guardado && temLingua(guardado.lingua)) return guardado.lingua;
+    if (D.lingua && temLingua(D.lingua)) return D.lingua;
+    var nav = (navigator.languages || [navigator.language || '']).map(function (x) { return String(x).slice(0, 2).toLowerCase(); });
+    for (var i = 0; i < nav.length; i++) if (temLingua(nav[i])) return nav[i];
+    return 'en';
+  }
+  function poeLingua(c) {
+    lingua = temLingua(c) ? c : 'en';
+    loc = D.linguas.filter(function (l) { return l[0] === lingua; })[0][2];
+    document.documentElement.lang = loc;
+    if (D.site) document.title = t('titulo');
+    itens = null;
+    estatico();
+  }
+
+  // ---------- recipes and links ----------
+  // A building uses one method per group. With several ticked, walk every combination (one ticked per group)
+  // and keep, per good, the minimum and maximum of the net input and output. A group with nothing ticked does not
+  // contribute. A method that requires another (unlocking_production_methods) only counts in a combination that has it.
+  function receita(b) {
+    var grupos = b.gr.map(function (g, gi) {
+      var l = [];
+      g.ms.forEach(function (m, mi) { if (M[b.id][gi][mi]) l.push({ m: m, sup: g.sup }); });
+      return l;
+    });
+    var bOk = techOk(b.t), n = 0, acc = {};
+    var pega = function (k) { return acc[k] || (acc[k] = { i0: Infinity, i1: 0, in: 0, ia: false, o0: Infinity, o1: 0, on: 0, oa: false, nuc: 0 }); };
+    var avalia = function (esc) {
+      var j, k, ids = esc.map(function (x) { return x.m.id; });
+      for (j = 0; j < esc.length; j++) {
+        var rq = esc[j].m.req;
+        if (rq.length && !rq.some(function (r) { return ids.indexOf(r) >= 0; })) return;
+      }
+      n++;
+      var i = {}, o = {}, nuc = {}, ok = bOk;
+      esc.forEach(function (x) {
+        if (!techOk(x.m.t)) ok = false;
+        for (k in x.m.i) { i[k] = (i[k] || 0) + x.m.i[k]; if (!x.sup) nuc[k] = (nuc[k] || 0) + x.m.i[k]; }
+        for (k in x.m.o) o[k] = (o[k] || 0) + x.m.o[k];
+      });
+      for (k in i) { var a = pega(k), v = Math.max(0, i[k]); a.in++; a.i0 = Math.min(a.i0, v); a.i1 = Math.max(a.i1, v); if (v > 1e-9 && ok) a.ia = true; if (nuc[k] > 1e-9) a.nuc = 1; }
+      for (k in o) { var c = pega(k), w = Math.max(0, o[k]); c.on++; c.o0 = Math.min(c.o0, w); c.o1 = Math.max(c.o1, w); if (w > 1e-9 && ok) c.oa = true; }
+    };
+    var rec = function (gi, esc) {
+      if (gi === grupos.length) { avalia(esc); return; }
+      if (!grupos[gi].length) { rec(gi + 1, esc); return; }
+      grupos[gi].forEach(function (x) { esc.push(x); rec(gi + 1, esc); esc.pop(); });
+    };
+    rec(0, []);
+    var ins = [], outs = [], k;
+    // each item: [good, minimum, maximum, general?, reachable with your technologies?]
+    for (k in acc) {
+      var a = acc[k];
+      if (a.i1 > 1e-9) ins.push([k, a.in < n ? 0 : a.i0, a.i1, !a.nuc, a.ia]);
+      if (a.o1 > 1e-9) outs.push([k, a.on < n ? 0 : a.o0, a.o1, false, a.oa]);
+    }
+    var ord = function (x, y) { return G[x[0]].ord - G[y[0]].ord; };
+    return { ins: ins.sort(ord), outs: outs.sort(ord), n: n };
+  }
+  function recalcula() { R = {}; D.blds.forEach(function (b) { R[b.id] = receita(b); }); }
+  function arestas() {
+    var E = [];
+    E.fora = 0;
+    D.blds.forEach(function (b) {
+      if (ocultas.has(b.cat) || fora.has(b.id)) return;
+      var bid = 'b:' + b.id;
+      R[b.id].ins.forEach(function (x) {
+        if (x[3] && !gerais) { E.fora++; return; }
+        E.push({ s: 'g:' + x[0], t: bid, q0: x[1], q1: x[2], fut: !x[4] });
+      });
+      R[b.id].outs.forEach(function (x) { E.push({ s: bid, t: 'g:' + x[0], q0: x[1], q1: x[2], fut: !x[4] }); });
+    });
+    return E;
+  }
+  function indices(E) {
+    var out = {}, inn = {};
+    E.forEach(function (e) { (out[e.s] = out[e.s] || []).push(e); (inn[e.t] = inn[e.t] || []).push(e); });
+    return { out: out, inn: inn };
+  }
+
+  // ---------- which nodes are drawn (each node is visited once, so cycles do not repeat) ----------
+  function alcance(E, ix) {
+    var V = new Set();
+    if (!foco || !isolado) { E.forEach(function (e) { V.add(e.s); V.add(e.t); }); return V; }
+    V.add(foco);
+    var lim = passos || Infinity;
+    var anda = function (viz) {
+      var fr = [foco], d, nx;
+      for (d = 0; d < lim && fr.length; d++) {
+        nx = [];
+        fr.forEach(function (n) { viz(n).forEach(function (m) { if (!V.has(m)) { V.add(m); nx.push(m); } }); });
+        fr = nx;
+      }
+    };
+    if (dir !== 'frente') anda(function (n) { return (ix.inn[n] || []).map(function (e) { return e.s; }); });
+    if (dir !== 'tras') anda(function (n) { return (ix.out[n] || []).map(function (e) { return e.t; }); });
+    return V;
+  }
+
+  // ---------- layers ----------
+  var EXTRATIVAS = ['resources', 'mines', 'agro', 'plantations'];
+  function camadas(E, ix) {
+    // Layer by "manufacturing step": a building sits right after its farthest input, and a good right after the
+    // first building able to make it. When a cycle blocks (tools need iron, mines need tools), the building with
+    // the fewest pending inputs goes in.
+    var gs = new Set(), bs = [], bset = new Set();
+    E.forEach(function (e) {
+      var g = e.s[0] === 'g' ? e.s : e.t, b = e.s[0] === 'b' ? e.s : e.t;
+      gs.add(g); if (!bset.has(b)) { bset.add(b); bs.push(b); }
+    });
+    var L = new Map();
+    gs.forEach(function (g) { if (!(ix.inn[g] || []).length) L.set(g, 0); });
+    // extraction (mines, logging, fishing, farms, plantations) always sits in the first layer, and what only it
+    // produces in the second: raw materials read better on the left, and what extraction consumes becomes a link back
+    bs.forEach(function (b) { if (EXTRATIVAS.indexOf(B[b.slice(2)].cat) >= 0) L.set(b, 0); });
+    bs.forEach(function (b) { if (L.has(b)) (ix.out[b] || []).forEach(function (e) { if (!L.has(e.t)) L.set(e.t, 1); }); });
+    var falta = bs.filter(function (b) { return !L.has(b); });
+    while (falta.length) {
+      var melhor = null;
+      falta.forEach(function (b) {
+        var pend = 0, niv = -1;
+        (ix.inn[b] || []).forEach(function (e) { if (L.has(e.s)) niv = Math.max(niv, L.get(e.s)); else pend++; });
+        var c = { b: b, pend: pend, niv: niv + 1 };
+        if (!melhor || c.pend < melhor.pend || (c.pend === melhor.pend && c.niv < melhor.niv)) melhor = c;
+      });
+      L.set(melhor.b, melhor.niv);
+      falta.splice(falta.indexOf(melhor.b), 1);
+      (ix.out[melhor.b] || []).forEach(function (e) { if (!L.has(e.t)) L.set(e.t, melhor.niv + 1); });
+    }
+    // a node with no input leans on its first neighbor to the right, so the link does not cross the whole graph
+    L.forEach(function (l, n) {
+      if ((ix.inn[n] || []).length) return;
+      var m = Infinity;
+      (ix.out[n] || []).forEach(function (e) { m = Math.min(m, L.get(e.t)); });
+      if (m !== Infinity && m - 1 > l) L.set(n, m - 1);
+    });
+    return L;
+  }
+
+  // ---------- drawing ----------
+  // The layout reserves room for nodes to grow up to SMAX times: from afar, box, icon and name grow together
+  // to stay readable on screen, without one node touching another.
+  var PAD = 50, GAPX = 90, GAPY = 8, SMAX = 1.45;
+  var HMAX = 1350, GAPS = 34; // a column taller than HMAX becomes two zigzag sub-columns, with a GAPS gap for links to pass
+  var ICB = 24, ICG = 16;     // icon side in a building and in a good
+  var DISCO = 24;             // diameter of the disc under a good's icon
+  var LAY = null, escala = 0;
+  // up to two lines of about `max` Latin letters; breaks at spaces, or anywhere for scripts without them
+  function quebra(nome, max) {
+    var ps = nome.split(' '), ls = [''], i;
+    for (i = 0; i < ps.length; i++) {
+      var c = ls[ls.length - 1];
+      if (!c) ls[ls.length - 1] = ps[i];
+      else if (largura(c + ' ' + ps[i]) <= max) ls[ls.length - 1] = c + ' ' + ps[i];
+      else ls.push(ps[i]);
+    }
+    if (ls.length === 1 && largura(ls[0]) > max && largura(ls[0]) > ls[0].length) { // CJK without spaces: split in the middle
+      var m = Math.ceil(ls[0].length / 2); ls = [ls[0].slice(0, m), ls[0].slice(m)];
+    }
+    if (ls.length > 2) ls = [ls[0], ls.slice(1).join(' ')];
+    return ls.map(function (l) { return corta(l, max + 2); });
+  }
+  function desenha(ajustar) {
+    var E = arestas(), ix = indices(E);
+    var V = alcance(E, ix);
+    var EV = E.filter(function (e) { return V.has(e.s) && V.has(e.t); });
+    var vix = indices(EV);
+    var L = camadas(EV, vix);
+    if (foco && !L.has(foco)) L.set(foco, 0);
+
+    var N2 = {};
+    L.forEach(function (l, id) {
+      var ehB = id[0] === 'b', n = { id: id, l: l, b: ehB }, larg;
+      n.ic = IC[id] ? (ehB ? ICB : ICG) : 0;
+      if (ehB) {
+        var b = B[id.slice(2)];
+        n.nin = (vix.inn[id] || []).length; n.nout = (vix.out[id] || []).length;
+        n.lock = !techOk(b.t);
+        n.cor = corCat(b.cat); n.off = fora.has(b.id);
+        n.ord = 1000 + b.ord;
+        n.linhas = quebra(N(b.id), 16);
+        larg = Math.max.apply(null, n.linhas.map(largura));
+        n.tw = larg * 7.4;
+        n.w = Math.round(n.tw + 18 + (n.ic ? n.ic + 5 : 0));
+        n.ht = n.linhas.length * 15 + 12; n.hp = 15 * Math.max(n.nin, n.nout) + 8; // height from the text (grows from afar) and from the ports, one per link (does not grow)
+      } else {
+        n.linhas = quebra(nomeG(id.slice(2)), 13);
+        larg = Math.max.apply(null, n.linhas.map(largura));
+        n.tw = larg * 6.9;
+        n.w = Math.round(DISCO + 6 + n.tw);
+        n.ht = Math.max(DISCO, n.linhas.length * 15); n.hp = 0;
+        n.ord = G[id.slice(2)].ord;
+      }
+      n.h = Math.max(n.ht * SMAX, n.hp);
+      N2[id] = n;
+    });
+    var ids = Object.keys(N2);
+
+    // columns and the order inside each (barycenter of the neighbors, several passes, to cross less)
+    var cols = {}, ls = [];
+    ids.forEach(function (id) { var l = N2[id].l; if (!cols[l]) { cols[l] = []; ls.push(l); } cols[l].push(N2[id]); });
+    ls.sort(function (a, b) { return a - b; });
+    ls.forEach(function (l) { cols[l].sort(function (a, b) { return a.ord - b.ord; }); cols[l].forEach(function (n, i) { n.r = (i + 0.5) / cols[l].length; }); });
+    var viz = function (n, f) {
+      (vix.inn[n.id] || []).forEach(function (e) { if (N2[e.s].l !== n.l) f(N2[e.s]); });
+      (vix.out[n.id] || []).forEach(function (e) { if (N2[e.t].l !== n.l) f(N2[e.t]); });
+    };
+    var it;
+    for (it = 0; it < 24; it++) {
+      (it % 2 ? ls.slice().reverse() : ls).forEach(function (l) {
+        cols[l].forEach(function (n) { var s = 0, c = 0; viz(n, function (m) { s += m.r; c++; }); n.bar = c ? s / c : n.r; });
+        cols[l].sort(function (a, b) { return a.bar - b.bar || a.ord - b.ord; });
+        cols[l].forEach(function (n, i) { n.r = (i + 0.5) / cols[l].length; });
+      });
+    }
+
+    // coordinates: x per column; y starts centered and then each node is pulled to the mean height of its neighbors
+    var x = PAD, maxH = 0;
+    ls.forEach(function (l) {
+      var w = 0, h = 0;
+      cols[l].forEach(function (n) { w = Math.max(w, n.w); h += n.h + GAPY; });
+      if (h > HMAX && cols[l].length >= 8) { // too tall: split in two, alternating nodes
+        // each node goes down half a step from the previous one, but never touches the one above in its own sub-column
+        var cur = 0, fim = [-GAPY, -GAPY];
+        cols[l].zig = true; cols[l].w1 = w; cols[l].dx = w * SMAX + 16; h = 0;
+        cols[l].forEach(function (n, i) { n.zy = Math.max(cur, fim[i % 2] + GAPY); fim[i % 2] = n.zy + n.h; cur = n.zy + (n.h + GAPS) / 2; h = Math.max(h, fim[i % 2]); });
+        w = w + cols[l].dx; h += GAPY;
+      }
+      cols[l].w = w; cols[l].h = h - GAPY; cols[l].x = x; x += w + GAPX; maxH = Math.max(maxH, cols[l].h);
+    });
+    var W = x - GAPX + PAD;
+    ls.forEach(function (l) {
+      var c = cols[l], y = (maxH - c.h) / 2;
+      c.forEach(function (n, i) {
+        if (c.zig) { n.cx = c.x + c.w1 / 2 + (i % 2) * c.dx; n.y = (maxH - c.h) / 2 + n.zy; n.cy = n.y + n.h / 2; return; }
+        n.cx = c.x + c.w / 2; n.y = y; n.cy = y + n.h / 2;
+        y += n.h + GAPY;
+      });
+    });
+    for (it = 0; it < 10; it++) {
+      (it % 2 ? ls.slice().reverse() : ls).forEach(function (l) {
+        var c = cols[l], i;
+        if (c.zig) return; // the zigzag has fixed positions
+        c.forEach(function (n) { var s = 0, k = 0; viz(n, function (m) { s += m.cy; k++; }); n.d = (k ? s / k : n.cy) - n.h / 2; });
+        for (i = 0; i < c.length; i++) c[i].f = i ? Math.max(c[i].d, c[i - 1].f + c[i - 1].h + GAPY) : c[i].d;
+        for (i = c.length - 1; i >= 0; i--) c[i].k = i < c.length - 1 ? Math.min(c[i].d, c[i + 1].k - c[i].h - GAPY) : c[i].d;
+        c.forEach(function (n) { n.y = (n.f + n.k) / 2; n.cy = n.y + n.h / 2; });
+      });
+    }
+    var y0 = Infinity, y1 = -Infinity;
+    ids.forEach(function (id) { y0 = Math.min(y0, N2[id].y); y1 = Math.max(y1, N2[id].y + N2[id].h); });
+    ids.forEach(function (id) { N2[id].cy += PAD - y0; });
+    var H = y1 - y0 + PAD * 2;
+
+    // ports: on buildings, one per link, ordered by the height of the other end (kept as a fraction of the height)
+    ids.forEach(function (id) {
+      if (!N2[id].b) return;
+      var ei = (vix.inn[id] || []).slice().sort(function (a, c) { return N2[a.s].cy - N2[c.s].cy; });
+      var eo = (vix.out[id] || []).slice().sort(function (a, c) { return N2[a.t].cy - N2[c.t].cy; });
+      ei.forEach(function (e, i) { e.ft = (i + 0.5) / ei.length - 0.5; });
+      eo.forEach(function (e, i) { e.fs = (i + 0.5) / eo.length - 0.5; });
+    });
+
+    EV.forEach(function (e, i) { e.i = i; });
+    LAY = { N: N2, ids: ids, EV: EV, ix: vix };
+    dims = { W: W, H: H };
+    var nb = ids.filter(function (id) { return id[0] === 'b'; }).length;
+    conta = { nb: nb, ng: ids.length - nb, ne: EV.length, fora: E.fora, fut: EV.filter(function (e) { return e.fut; }).length };
+    escala = 0; // forces a repaint
+    if (ajustar) ajusta(); else aplicaView();
+    stage.dataset.w = Math.round(W); stage.dataset.h = Math.round(H);
+  }
+  // paints the layout with nodes at scale s (1 = base size; grows as the camera moves away)
+  function pinta(s) {
+    var NN = LAY.N, f1 = function (v) { return v.toFixed(1); };
+    var pe = [], pn = [], pq = [];
+    LAY.EV.forEach(function (e) {
+      var a = NN[e.s], b = NN[e.t];
+      var sx = a.cx + a.w * s / 2 + (a.b ? 0 : 3 * s), sy = a.b ? a.cy + e.fs * Math.max(a.ht * s, a.hp) : a.cy;
+      var tx = b.cx - b.w * s / 2, ty = b.b ? b.cy + e.ft * Math.max(b.ht * s, b.hp) : b.cy;
+      var volta = b.l <= a.l;
+      var dx = volta ? 70 : Math.max(20, (tx - sx) * 0.5);
+      pe.push('<path class="e' + (e.fut ? ' fut' : '') + '" data-s="' + e.s + '" data-t="' + e.t + '" marker-end="url(#arr)" d="M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + dx) + ',' + f1(sy) + ' ' + f1(tx - dx) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty) + '"/>');
+      // the number sits next to the building, which is what sets the amount
+      pq.push('<text class="q" data-s="' + e.s + '" data-t="' + e.t + '" '
+        + (b.b ? 'x="' + f1(tx - 9 * s) + '" y="' + f1(ty - 4 * s) + '" text-anchor="end"' : 'x="' + f1(sx + 5 * s) + '" y="' + f1(sy - 4 * s) + '" text-anchor="start"') + '>' + esc(faixa(e.q0, e.q1)) + '</text>');
+    });
+    LAY.ids.forEach(function (id) {
+      var n = NN[id], cls = 'n ' + (n.b ? 'b' : 'g') + (n.lock ? ' lock' : '') + (n.off ? ' off' : '');
+      var w = n.w * s, h = Math.max(n.ht * s, n.hp), y0 = n.cy - (n.linhas.length - 1) * 7.5 * s + 4.4 * s;
+      var x0 = n.cx - w / 2, ic = n.ic * s, corpo;
+      // the ring only shows on the pinned node and on keyboard focus; it sits 2 px away from the node
+      var anel = '<rect class="anel" x="' + f1(x0 - 4) + '" y="' + f1(n.cy - h / 2 - 4) + '" width="' + f1(w + 8) + '" height="' + f1(h + 8) + '" rx="' + f1(6 * s + 3) + '"/>';
+      if (n.b) {
+        // building: a block filled with the category color, icon on the fill, name in white
+        var xi = x0 + 9 * s, xt = xi + (n.ic ? ic + 5 * s : 0) + n.tw * s / 2;
+        corpo = '<rect class="box" x="' + f1(x0) + '" y="' + f1(n.cy - h / 2) + '" width="' + f1(w) + '" height="' + f1(h) + '" rx="' + f1(6 * s) + '"/>'
+          + (n.ic ? '<use href="#i-' + id.replace(':', '-') + '" x="' + f1(xi) + '" y="' + f1(n.cy - ic / 2) + '" width="' + f1(ic) + '" height="' + f1(ic) + '"/>' : '')
+          + n.linhas.map(function (l, i) { return '<text x="' + f1(xt) + '" y="' + f1(y0 + i * 15 * s) + '" text-anchor="middle">' + esc(l) + '</text>'; }).join('');
+      } else {
+        // good: no box; the icon on a filled disc, then the name as plain text
+        var r = DISCO * s / 2;
+        corpo = '<rect class="hit" x="' + f1(x0) + '" y="' + f1(n.cy - h / 2) + '" width="' + f1(w) + '" height="' + f1(h) + '"/>'
+          + '<circle class="disc" cx="' + f1(x0 + r) + '" cy="' + f1(n.cy) + '" r="' + f1(r) + '"/>'
+          + (n.ic ? '<use href="#i-' + id.replace(':', '-') + '" x="' + f1(x0 + r - ic / 2) + '" y="' + f1(n.cy - ic / 2) + '" width="' + f1(ic) + '" height="' + f1(ic) + '"/>' : '')
+          + n.linhas.map(function (l, i) { return '<text x="' + f1(x0 + (DISCO + 6) * s) + '" y="' + f1(y0 + i * 15 * s) + '">' + esc(l) + '</text>'; }).join('');
+      }
+      pn.push('<g class="' + cls + '" data-n="' + id + '"' + (n.b ? ' style="--cat:' + n.cor + '"' : '') + ' tabindex="0" role="button" aria-label="' + esc(t(n.b ? 'node_b' : 'node_g', { n: nomeNo(id) })) + '">' + anel + corpo + '</g>');
+    });
+    // the dot grid lives inside the camera group, so it follows zoom and pan
+    vp.innerHTML = '<rect class="grade" x="-30000" y="-30000" width="60000" height="60000"/>' + pe.join('') + pn.join('') + pq.join('');
+    svg.style.setProperty('--nf', (12.5 * s).toFixed(2) + 'px');
+    svg.style.setProperty('--qf', (11 * Math.min(s, 1.25)).toFixed(2) + 'px');
+    pintaRealce();
+  }
+
+  // ---------- camera: zoom, movement and level of detail ----------
+  function aplicaView() {
+    // from afar, names, icons and boxes grow so the text stays near 11 px on screen; amounts only come in up close
+    var s = Math.round(entre(0.86 / view.k, 1, SMAX) * 20) / 20;
+    if (s !== escala) { escala = s; pinta(s); }
+    vp.setAttribute('transform', 'translate(' + view.x.toFixed(1) + ',' + view.y.toFixed(1) + ') scale(' + view.k.toFixed(4) + ')');
+    var l = view.k < 1 ? 'far' : 'near';
+    if (l !== lod) { if (lod) svg.classList.remove('lod-' + lod); svg.classList.add('lod-' + l); lod = l; }
+    stage.dataset.k = view.k.toFixed(3); stage.dataset.x = Math.round(view.x); stage.dataset.y = Math.round(view.y); stage.dataset.lod = lod; stage.dataset.s = s;
+  }
+  function areaLivre() {
+    var w = stage.clientWidth, h = stage.clientHeight - sheet.offsetHeight;
+    if (h < 140) h = stage.clientHeight * 0.5;
+    return { w: w, h: h };
+  }
+  // true once the person moved the camera by hand (drag, wheel, pinch, zoom buttons) since the last automatic fit
+  var camManual = false;
+  function ajusta() {
+    camManual = false;
+    var a = areaLivre(), m = 10;
+    if (foco && !isolado) a.h = Math.max(a.h, stage.clientHeight - 40); // with a pinned node and no isolation, the map does not shrink because of the open sheet
+    var kTudo = Math.min((a.w - 2 * m) / dims.W, (a.h - 2 * m) / dims.H);
+    // on a narrow screen, fitting everything would make the map unreadable: fit the height and let it pan sideways
+    var k = entre(Math.max(kTudo, Math.min((a.h - 2 * m) / dims.H, foco && isolado ? 0.75 : 0.45)), 0.08, 1.25);
+    view.k = k;
+    view.x = dims.W * k <= a.w ? (a.w - dims.W * k) / 2 : m;
+    view.y = (a.h - dims.H * k) / 2;
+    if (foco && isolado) {
+      var nf = LAY && LAY.N[foco];
+      if (nf && dims.W * k > a.w) view.x = entre(a.w / 2 - nf.cx * k, a.w - dims.W * k - m, m);
+    }
+    aplicaView();
+  }
+  function zoomEm(f, cx, cy) {
+    camManual = true;
+    var k2 = entre(view.k * f, 0.08, 3);
+    view.x = cx - (cx - view.x) * k2 / view.k;
+    view.y = cy - (cy - view.y) * k2 / view.k;
+    view.k = k2;
+    aplicaView();
+  }
+  function zoomCentro(f) { var a = areaLivre(); zoomEm(f, a.w / 2, a.h / 2); }
+
+  svg.addEventListener('wheel', function (ev) {
+    ev.preventDefault();
+    var r = stage.getBoundingClientRect();
+    var dy = ev.deltaMode === 1 ? ev.deltaY * 32 : ev.deltaY;
+    zoomEm(Math.exp(-entre(dy, -240, 240) * 0.0016), ev.clientX - r.left, ev.clientY - r.top);
+    escondeTip();
+  }, { passive: false });
+
+  var pts = new Map(), arr = null, pin = null, moveu = false;
+  function iniciaGesto() {
+    var a = Array.from(pts.values());
+    arr = null; pin = null;
+    if (a.length === 1) arr = { x: a[0].x, y: a[0].y, vx: view.x, vy: view.y };
+    else if (a.length >= 2) {
+      var r = stage.getBoundingClientRect();
+      pin = { d: Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1, mx: (a[0].x + a[1].x) / 2 - r.left, my: (a[0].y + a[1].y) / 2 - r.top, k: view.k, vx: view.x, vy: view.y };
+    }
+  }
+  svg.addEventListener('pointerdown', function (ev) {
+    if (ev.pointerType === 'mouse' && ev.button !== 0) return;
+    pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (pts.size === 1) moveu = false;
+    iniciaGesto();
+  });
+  var puxa = null; // dragging the top edge of the sheet
+  window.addEventListener('pointermove', function (ev) {
+    if (puxa) {
+      altura = Math.round(stage.getBoundingClientRect().bottom - ev.clientY);
+      aplicaAltura();
+      return;
+    }
+    if (!pts.has(ev.pointerId)) return;
+    pts.set(ev.pointerId, { x: ev.clientX, y: ev.clientY });
+    if (arr) {
+      var dx = ev.clientX - arr.x, dy = ev.clientY - arr.y;
+      if (!moveu && Math.abs(dx) + Math.abs(dy) < 6) return;
+      moveu = true; camManual = true; stage.classList.add('pan'); escondeTip();
+      view.x = arr.vx + dx; view.y = arr.vy + dy; aplicaView();
+    } else if (pin) {
+      var a = Array.from(pts.values()), r = stage.getBoundingClientRect();
+      var d = Math.hypot(a[0].x - a[1].x, a[0].y - a[1].y) || 1;
+      var mx = (a[0].x + a[1].x) / 2 - r.left, my = (a[0].y + a[1].y) / 2 - r.top;
+      var k2 = entre(pin.k * d / pin.d, 0.08, 3);
+      moveu = true; camManual = true;
+      view.x = mx - (pin.mx - pin.vx) * k2 / pin.k; view.y = my - (pin.my - pin.vy) * k2 / pin.k; view.k = k2;
+      aplicaView();
+    }
+  });
+  function soltou(ev) {
+    if (puxa) { puxa = null; salva(); reajusta(); return; }
+    if (!pts.has(ev.pointerId)) return;
+    pts.delete(ev.pointerId);
+    iniciaGesto();
+    if (!pts.size) stage.classList.remove('pan');
+  }
+  window.addEventListener('pointerup', soltou);
+  window.addEventListener('pointercancel', soltou);
+
+  svg.addEventListener('click', function (ev) {
+    if (moveu) { moveu = false; return; }
+    var n = ev.target.closest('[data-n]');
+    if (n) vaiPara(n.getAttribute('data-n')); else if (foco) vaiPara(null);
+  });
+  svg.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Enter' && ev.key !== ' ') return;
+    var n = ev.target.closest('[data-n]'); if (n) { ev.preventDefault(); vaiPara(n.getAttribute('data-n')); }
+  });
+
+  // highlight: follows the CHAIN of the node, not only its neighbors. Upstream (what it is made of) in one color,
+  // downstream (where it goes) in another; the closer to the node, the thicker the link. The rest fades without vanishing.
+  // Hovering shows exactly what a click would pin: the direction and reach chosen in the sheet header (one step each
+  // way by default, so hovering coal or tools does not light up half the graph).
+  var ultimaCadeia = null;
+  function cadeia(id, fixado) {
+    var ix = LAY.ix, nos = new Map([[id, { lado: 'eu', d: 0 }]]), ars = new Map();
+    var limU = dir === 'frente' ? 0 : (passos || Infinity);
+    var limD = dir === 'tras' ? 0 : (passos || Infinity);
+    var anda = function (lim, lado, prox, outra) {
+      var fr = [id], d, nx;
+      for (d = 1; d <= lim && fr.length; d++) {
+        nx = [];
+        fr.forEach(function (n) {
+          (prox[n] || []).forEach(function (e) {
+            if (!ars.has(e)) ars.set(e, { lado: lado, d: d });
+            var m = outra(e);
+            if (!nos.has(m)) { nos.set(m, { lado: lado, d: d }); nx.push(m); } // each node goes in once: cycles do not repeat
+          });
+        });
+        fr = nx;
+      }
+    };
+    anda(limU, 'up', ix.inn, function (e) { return e.s; });
+    anda(limD, 'dn', ix.out, function (e) { return e.t; });
+    return { nos: nos, ars: ars };
+  }
+  function pintaRealce() {
+    var LIMPA = ['hv', 'up', 'dn', 'w1', 'w2', 'w3', 'cu', 'cd', 'eu', 'so'];
+    vp.querySelectorAll('.hv').forEach(function (e) { LIMPA.forEach(function (c) { e.classList.remove(c); }); if (e.classList.contains('e')) e.setAttribute('marker-end', 'url(#arr)'); });
+    var id = foco || sobre;
+    ultimaCadeia = null;
+    if (!id || !LAY || !LAY.N[id]) { svg.classList.remove('hov'); stage.dataset.cadeia = ''; return; }
+    var c = ultimaCadeia = cadeia(id, !!foco);
+    svg.classList.add('hov');
+    var es = vp.querySelectorAll('.e'), qs = vp.querySelectorAll('.q');
+    c.ars.forEach(function (v, e) {
+      es[e.i].classList.add('hv', v.lado, 'w' + Math.min(3, v.d));
+      es[e.i].setAttribute('marker-end', 'url(#' + (v.lado === 'up' ? 'arru' : 'arrd') + ')');
+      qs[e.i].classList.add('hv', v.lado);
+    });
+    vp.querySelectorAll('.n').forEach(function (n) {
+      var v = c.nos.get(n.getAttribute('data-n'));
+      if (v) n.classList.add('hv', v.lado === 'up' ? 'cu' : v.lado === 'dn' ? 'cd' : (foco ? 'eu' : 'so'));
+    });
+    var nomes = { up: [], dn: [] };
+    c.nos.forEach(function (v, k) { if (nomes[v.lado]) nomes[v.lado].push(nomeNo(k)); });
+    stage.dataset.cadeia = 'up: ' + nomes.up.join(', ') + ' | down: ' + nomes.dn.join(', ');
+  }
+  // brings the highlighted chain into view: only moves when it is not entirely visible
+  function enquadra() {
+    var c = ultimaCadeia; if (!c) return;
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    c.nos.forEach(function (v, id) {
+      var n = LAY.N[id], w = n.w * escala / 2, h = Math.max(n.ht * escala, n.hp) / 2;
+      x0 = Math.min(x0, n.cx - w); x1 = Math.max(x1, n.cx + w); y0 = Math.min(y0, n.cy - h); y1 = Math.max(y1, n.cy + h);
+    });
+    var a = areaLivre(), m = 22, k = view.k;
+    if (x0 * k + view.x >= m && x1 * k + view.x <= a.w - m && y0 * k + view.y >= m && y1 * k + view.y <= a.h - m) return;
+    if ((x1 - x0) * k <= a.w - 2 * m && (y1 - y0) * k <= a.h - 2 * m) {
+      view.x = a.w / 2 - (x0 + x1) / 2 * k; view.y = a.h / 2 - (y0 + y1) / 2 * k; // fits at the current zoom: center the chain
+    } else {
+      // chain too large for the current zoom: do not zoom out (it would become unreadable), just keep the pinned node in view
+      var nf = LAY.N[foco], px = nf.cx * k + view.x, py = nf.cy * k + view.y;
+      if (px >= 70 && px <= a.w - 70 && py >= 40 && py <= a.h - 40) return;
+      view.x = a.w / 2 - nf.cx * k; view.y = a.h / 2 - nf.cy * k;
+    }
+    aplicaView();
+  }
+  function passa(id) { if (id === sobre) return; sobre = id; if (!foco) pintaRealce(); }
+
+  // ---------- recipe grammar ----------
+  // Each good is a unit "icon + amount + name"; blue for what goes in, orange for what comes out.
+  function un(k, txt, lado) {
+    return '<span class="un ' + lado + '" title="' + esc(nomeG(k)) + '">' + img('g:' + k) + '<span class="qn">' + esc(txt) + '</span><span>' + esc(minus(nomeG(k))) + '</span></span>';
+  }
+  // the same unit, but clickable (opens the good) and with a tip that says which period the number refers to
+  function unLink(x, lado) {
+    var k = x[0], q = faixa(x[1], x[2]);
+    return '<button type="button" class="un ' + lado + '" data-go="g:' + k + '" data-tip="' + esc(t('un_tip', { n: nomeG(k), q: q }) + (x[3] ? '. ' + t('un_general') : '') + (x[4] ? '' : '. ' + t('un_future')) + '. ' + t('un_click')) + '">'
+      + img('g:' + k) + '<span class="qn">' + esc(q) + '</span><span class="gnm">' + esc(minus(nomeG(k))) + '</span></button>';
+  }
+  function receitaTip(ins, outs) {
+    return '<span class="rc"><span class="ci">' + ins.join('') + '</span><span class="ar' + (outs.length ? '' : ' vz') + '">' + SETA + '</span><span class="co">' + outs.join('') + '</span></span>';
+  }
+  function textoTip(id) {
+    var lista = function (xs, lado) { return xs.map(function (x) { return un(x[0], faixa(x[1], x[2]), lado); }); };
+    if (id[0] === 'b') {
+      var b = B[id.slice(2)], r = R[b.id];
+      return '<div class="hd"><i class="sw" style="--cat:' + corCat(b.cat) + '"></i>' + img(id) + '<span><b>' + esc(N(b.id)) + '</b> · ' + esc(nomeCat(b.cat)) + (techOk(b.t) ? '' : ' · ' + t('tip_cant')) + '</span></div>'
+        + '<div class="r">' + (r.ins.length || r.outs.length ? receitaTip(lista(r.ins, 'in'), lista(r.outs, 'out')) : t('tip_none')) + '</div>';
+    }
+    var g = G[id.slice(2)], np = 0, nc = 0;
+    D.blds.forEach(function (b) {
+      if (R[b.id].outs.some(function (x) { return x[0] === g.id; })) np++;
+      if (R[b.id].ins.some(function (x) { return x[0] === g.id; })) nc++;
+    });
+    return '<div class="hd">' + img(id) + '<span><b>' + esc(nomeG(g.id)) + '</b> · ' + t('tip_price') + ' £' + fmt(g.p) + '</span></div><div class="r"><span class="qv out">' + t('tip_prod', { n: np }) + '</span>, <span class="qv in">' + t('tip_cons', { n: nc }) + '</span></div>';
+  }
+  function escondeTip() { tip.hidden = true; }
+  function posTip(ev) {
+    var r = stage.getBoundingClientRect(), x = ev.clientX - r.left + 14, y = ev.clientY - r.top + 16;
+    tip.style.left = entre(x, 4, Math.max(4, r.width - tip.offsetWidth - 4)) + 'px';
+    tip.style.top = (y + tip.offsetHeight > r.height - sheet.offsetHeight - 4 ? Math.max(4, ev.clientY - r.top - tip.offsetHeight - 10) : y) + 'px';
+  }
+  svg.addEventListener('mouseover', function (ev) {
+    if (pts.size && moveu) return;
+    var n = ev.target.closest('[data-n]'), id = n ? n.getAttribute('data-n') : null;
+    passa(id);
+    if (id) { tip.innerHTML = textoTip(id); tip.hidden = false; posTip(ev); } else escondeTip();
+  });
+  svg.addEventListener('mousemove', function (ev) { if (!tip.hidden) posTip(ev); });
+  svg.addEventListener('mouseleave', function () { passa(null); escondeTip(); });
+  svg.addEventListener('focusin', function (ev) { var n = ev.target.closest('[data-n]'); passa(n ? n.getAttribute('data-n') : null); });
+  svg.addEventListener('focusout', function () { passa(null); });
+
+  // ---------- the sheet ----------
+  // technology: name and era in Roman numerals; filled dot = within your era, faint dot = beyond it.
+  // With "all eras" chosen there is nothing to tell apart, so no dot is drawn.
+  function tecHtml(ts) {
+    if (!ts.length) return '<span class="tec">' + (era === 0 ? '' : '<i class="pt on"></i>') + t('no_tech') + '</span>';
+    return ts.map(function (x) {
+      var tem = temTec(x);
+      return '<span class="tec">' + (era === 0 ? '' : '<i class="pt' + (tem ? ' on' : '') + '"></i>') + esc(N('t:' + x)) + ' · ' + t('era') + ' ' + (ROM[eraDe(x)] || '?') + (era === 0 ? '' : '<span class="vh"> ' + t(tem ? 'has' : 'lacks') + '</span>') + '</span>';
+    }).join('');
+  }
+  // conditions the page does not simulate, worded from the structured notes
+  function notas(m) {
+    if (!m.nt) return '';
+    return m.nt.map(function (x) {
+      if (x[0] === 'law' || x[0] === 'nolaw') return t('nt_' + x[0], { l: x[1].map(N).join(x[0] === 'law' ? t('or') : ', ') });
+      if (x[0] === 'needs') return t('nt_needs', { g: minus(nomeG(x[1])) });
+      if (x[0] === 'req') return t('nt_req', { m: x[1].map(N).join(t('or')) });
+      return t('nt_' + x[0]);
+    }).join('; ');
+  }
+  var efeitos = function (m) { return m.e ? m.e.map(function (x) { return (x[1] > 0 ? '+' : '−') + fmt(Math.abs(x[1])) + ' ' + t('ef_' + x[0]); }).join(', ') : ''; };
+  var ACOES = ['todos', 'basico', 'fim'];
+  function acoes(bid, gi) {
+    return '<span class="lks">' + ACOES.map(function (a) { return '<button type="button" class="lk" data-acao="' + a + '" data-b="' + bid + '"' + (gi === null ? '' : ' data-g="' + gi + '"') + '>' + t('act_' + a) + '</button>'; }).join('<span class="sep">·</span>') + '</span>';
+  }
+  var cel = function (cls, h) { return '<div class="' + cls + '">' + h + '</div>'; };
+  // building table: column header, total row and, per group, one row per method. All on the same tracks.
+  function tabelaEdificio(b) {
+    var r = R[b.id], val = 0, h = [];
+    r.outs.forEach(function (x) { val += x[2] * G[x[0]].p; });
+    r.ins.forEach(function (x) { val -= x[2] * G[x[0]].p; });
+    h.push('<div class="th c-mk"></div><div class="th c-nm"><span>' + t('tb_method') + '</span>' + acoes(b.id, null) + '</div><div class="th c-in">' + t('tb_in') + '</div><div class="th c-ar"></div><div class="th c-out">' + t('tb_out') + '<span class="sm">' + t('per') + '</span></div>');
+    var extra = r.n > 1 ? '<button type="button" class="lk" data-tip="' + esc(t('combos_tip', { n: r.n })) + '">' + t('combos', { n: r.n }) + '</button>'
+      : r.n === 1 && (r.ins.length || r.outs.length) ? '<span class="small" tabindex="0" data-tip="' + esc(t('balance_tip')) + '">' + t('balance') + ' <span class="bal">£' + fmt(val) + '</span></span>' : '';
+    h.push('<div class="tr tot">' + cel('c-mk', '') + cel('c-nm', '<span class="tn">' + t('total') + '</span>' + extra)
+      + (r.ins.length || r.outs.length
+        ? cel('c-in', '<span class="us">' + r.ins.map(function (x) { return unLink(x, 'in'); }).join('') + '</span>') + cel('c-ar', r.outs.length ? SETA : '') + cel('c-out', '<span class="us">' + r.outs.map(function (x) { return unLink(x, 'out'); }).join('') + '</span>')
+        : cel('c-in vazio', '<span class="nx">' + t('no_goods_marked') + '</span>')) + '</div>');
+    var avisos = [];
+    if (b.nb) avisos.push('<span class="small">' + t('not_queue') + '</span>');
+    if (ocultas.has(b.cat)) avisos.push('<span class="warn">' + esc(t('cat_off', { c: nomeCat(b.cat) })) + '</span>');
+    if (r.n === 0) avisos.push('<span class="warn">' + t('no_combo') + '</span>');
+    if (avisos.length) h.push('<div class="full">' + avisos.join(' ') + '</div>');
+    b.gr.forEach(function (g, gi) {
+      var nenhum = !M[b.id][gi].some(function (v) { return v; });
+      h.push('<div class="gh"><span><span class="gn">' + esc(N(g.id)) + '</span>' + (g.sup ? ' <span class="small">' + t('support') + '</span>' : '') + '</span>' + (g.ms.length > 1 ? acoes(b.id, gi) : '') + '</div>');
+      g.ms.forEach(function (m, mi) {
+        var id = 'm-' + b.id + '-' + gi + '-' + mi, on = M[b.id][gi][mi], principal = gi === 0;
+        // in the main group the value goes unsigned; in the secondary ones the sign stays, because there it is the information
+        var f = function (o, lado) { return Object.keys(o).map(function (k) { return un(k, (o[k] < 0 ? '−' : principal ? '' : '+') + fmt(Math.abs(o[k])), lado); }).join(''); };
+        var a = f(m.i, 'in'), c = f(m.o, 'out'), ef = efeitos(m), nt = notas(m);
+        h.push('<label class="tr' + (on ? '' : ' des') + '" for="' + id + '">'
+          + cel('c-mk', '<input type="checkbox" id="' + id + '" data-b="' + b.id + '" data-g="' + gi + '" data-m="' + mi + '"' + (on ? ' checked' : '') + '>')
+          + cel('c-nm', '<span class="mn">' + esc(N(m.id)) + '</span>' + tecHtml(m.t) + (nt ? '<span class="note">' + esc(nt) + '</span>' : ''))
+          + (a || c
+            ? cel('c-in', '<span class="us">' + a + '</span>') + cel('c-ar', c ? SETA : '') + cel('c-out', '<span class="us">' + c + '</span>' + (ef ? '<span class="nx">' + esc(ef) + '</span>' : ''))
+            : cel('c-in vazio', '<span class="nx">' + esc(ef || t('no_goods')) + '</span>'))
+          + '</label>');
+      });
+      if (nenhum) h.push('<div class="full warn">' + t('no_method') + '</div>');
+    });
+    return '<div class="tb">' + h.join('') + '</div>';
+  }
+  // good table: one row per building, on the same tracks; consumers have a number in the blue column, producers in the orange one
+  function tabelaMercadoria(g) {
+    var prod = [], cons = [], pode = [], h = [];
+    D.blds.forEach(function (b) {
+      var r = R[b.id], q;
+      q = r.outs.find(function (x) { return x[0] === g.id; }); if (q) prod.push([b, q]);
+      else if (b.gr.some(function (gr) { return gr.ms.some(function (m) { return m.o[g.id] > 0; }); })) pode.push(b);
+      q = r.ins.find(function (x) { return x[0] === g.id; }); if (q) cons.push([b, q]);
+    });
+    h.push('<div class="th c-mk"></div><div class="th c-nm">' + t('tb_building') + '</div><div class="th c-in">' + t('tb_consumes') + '</div><div class="th c-ar"></div><div class="th c-out">' + t('tb_produces') + '<span class="sm">' + t('per') + '</span></div>');
+    var linhas = function (arr, lado) {
+      arr.forEach(function (x) {
+        var b = x[0], q = x[1], off = ocultas.has(b.cat) || fora.has(b.id);
+        var flags = [q[3] ? t('f_general') : '', q[4] ? '' : t('f_future'), off ? t('f_off') : ''].filter(Boolean).join(' · ');
+        var num = '<span class="qv ' + lado + '">' + esc(faixa(q[1], q[2])) + '</span>' + (flags ? '<span class="nx">' + flags + '</span>' : '');
+        h.push('<div class="tr' + (off ? ' des' : '') + '">' + cel('c-mk', '<i class="sw" style="--cat:' + corCat(b.cat) + '" title="' + esc(nomeCat(b.cat)) + '"></i>')
+          + cel('c-nm', '<button type="button" class="link" data-go="b:' + b.id + '">' + img('b:' + b.id) + esc(N(b.id)) + '</button>')
+          + cel('c-in', lado === 'in' ? num : '') + cel('c-ar', '') + cel('c-out', lado === 'out' ? num : '') + '</div>');
+      });
+    };
+    h.push('<div class="gh"><span class="gn">' + t('who_prod') + '</span><span class="small">' + t('n_bld', { n: prod.length }) + '</span></div>');
+    if (prod.length) linhas(prod, 'out'); else h.push('<div class="full small">' + t('none_prod') + '</div>');
+    if (pode.length) h.push('<div class="full small">' + t('unticked') + pode.map(function (b) { return '<button type="button" class="link" data-go="b:' + b.id + '">' + esc(N(b.id)) + '</button>'; }).join(', ') + '</div>');
+    h.push('<div class="gh"><span class="gn">' + t('who_cons') + '</span><span class="small">' + t('n_bld', { n: cons.length }) + '</span></div>');
+    if (cons.length) linhas(cons, 'in'); else h.push('<div class="full small">' + t('none_cons') + '</div>');
+    return '<div class="tb merc">' + h.join('') + '</div>';
+  }
+  function status() {
+    var st = t('st_b', { n: conta.nb }) + ', ' + t('st_g', { n: conta.ng }) + ', ' + t('st_e', { n: conta.ne });
+    if (conta.fut) st += ' ' + t('st_fut', { n: conta.fut });
+    if (conta.fora) st += ' · ' + t('st_out', { n: conta.fora });
+    if (foco && !isolado && ultimaCadeia) st = t('st_chain', { n: ultimaCadeia.nos.size - 1 }) + ' · ' + st;
+    return st;
+  }
+  function poeStatus() {
+    var tx = status(), a = sheet.querySelector('.st'), c = $('cbar');
+    if (a) a.textContent = tx;
+    if (c) { c.setAttribute('aria-label', t('chain') + ': ' + (foco && !isolado && ultimaCadeia ? t('st_chain', { n: ultimaCadeia.nos.size - 1 }) : tx)); c.setAttribute('data-tip', tx); }
+  }
+  // sheet height: the one chosen by hand, or a default that shows the header, the total and a few rows
+  function aplicaAltura() {
+    if (foco && !recolhida) {
+      var total = stage.clientHeight, padrao = Math.round(Math.min(360, total * 0.5));
+      sheet.style.height = entre(altura || padrao, 130, Math.max(130, total - 70)) + 'px';
+    } else sheet.style.height = '';
+    stage.style.setProperty('--sh', sheet.offsetHeight + 'px');
+  }
+  function painel() {
+    if (!foco) {
+      sheet.className = 'sheet';
+      sheet.innerHTML = '<div class="sh-head"><span class="hint">' + t('hint') + '</span><span class="small st"></span></div>';
+      aplicaAltura();
+      return;
+    }
+    var corpo, cab;
+    if (foco[0] === 'g') {
+      var g = G[foco.slice(2)];
+      cab = img(foco) + '<h2 title="' + esc(nomeG(g.id)) + '">' + esc(nomeG(g.id)) + '</h2><span class="cat merc">' + esc(t('merc', { c: t('gc_' + g.c), p: fmt(g.p) })) + '</span>';
+      corpo = tabelaMercadoria(g);
+    } else {
+      var b = B[foco.slice(2)], dentro = !fora.has(b.id);
+      cab = img(foco) + '<h2' + (dentro ? '' : ' class="off"') + ' title="' + esc(N(b.id)) + '">' + esc(N(b.id)) + '</h2>'
+        + (dentro ? '' : '<span class="fora">' + t('off_badge') + '</span>')
+        + '<span class="cat"><i class="sw" style="--cat:' + corCat(b.cat) + '" title="' + esc(nomeCat(b.cat)) + '"></i><span class="ctx">' + esc(nomeCat(b.cat)) + '</span></span>' + tecHtml(b.t)
+        + '<button type="button" class="tx sq eye" id="olho" data-incl="' + b.id + '" aria-pressed="' + dentro + '" aria-label="' + esc(t('eye')) + '" data-tip="' + esc(t(dentro ? 'eye_on' : 'eye_off')) + '">'
+        + '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/>' + (dentro ? '<circle cx="12" cy="12" r="3"/>' : '<path d="M4 4l16 16"/>') + '</svg></button>';
+      corpo = tabelaEdificio(b);
+    }
+    sheet.className = 'sheet foco' + (recolhida ? ' recolhida' : '');
+    sheet.innerHTML = (recolhida ? '' : '<div class="grip" id="grip" role="separator" aria-orientation="horizontal" tabindex="0" aria-label="' + esc(t('grip')) + '"></div>')
+      + '<div class="sh-head"><div class="ttl">' + cab + '</div>'
+      + '<div class="cbar" id="cbar" role="group"><div class="seg" data-host="dir" role="group" aria-label="' + esc(t('dir_aria')) + '"></div><div class="seg" data-host="passos" role="group" aria-label="' + esc(t('steps_aria')) + '"></div><span data-host="iso"></span></div>'
+      + '<button type="button" class="tx sq" id="recolher" aria-expanded="' + !recolhida + '" aria-label="' + esc(t(recolhida ? 'sheet_open' : 'sheet_close')) + '" data-tip="' + esc(t(recolhida ? 'sheet_open' : 'sheet_close')) + '">' + svgIco(recolhida ? 'chevsUp' : 'chevsDown') + '</button>'
+      + '<button type="button" class="tx sq" data-limpa="1" aria-label="' + esc(t('unpin')) + '" data-tip="' + esc(t('unpin')) + '">' + svgIco('x') + '</button></div>'
+      + (recolhida ? '' : '<div class="sh-body">' + corpo + '</div>');
+    aplicaAltura();
+  }
+  sheet.addEventListener('pointerdown', function (ev) {
+    if (!ev.target.closest('.grip')) return;
+    ev.preventDefault(); puxa = true;
+  });
+  sheet.addEventListener('keydown', function (ev) {
+    if (!ev.target.closest('.grip') || (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown')) return;
+    ev.preventDefault();
+    altura = sheet.offsetHeight + (ev.key === 'ArrowUp' ? 28 : -28); aplicaAltura(); salva();
+  });
+
+  // ---------- controls ----------
+  var segHtml = function (attr, itens, atual) {
+    return itens.map(function (x) { return '<button type="button" data-' + attr + '="' + x[0] + '" aria-pressed="' + (atual === x[0]) + '">' + esc(x[1]) + '</button>'; }).join('');
+  };
+  // everything that is fixed text: written once per language
+  function estatico() {
+    $('brand').textContent = t('brand');
+    $('busca').placeholder = t('search_ph'); $('busca').setAttribute('aria-label', t('search_aria'));
+    $('chip').setAttribute('aria-label', t('unpin')); $('bajuda').setAttribute('aria-label', t('help_aria'));
+    svg.setAttribute('aria-label', t('graph_aria'));
+    $('zoom').setAttribute('aria-label', t('zoom')); $('zmenos').setAttribute('aria-label', t('zoom_out')); $('zmais').setAttribute('aria-label', t('zoom_in')); $('zfit').textContent = t('fit');
+    $('bajuda').innerHTML = ico('help') + '<span class="rt">' + t('help') + '</span>'; $('bajuda').title = t('help_aria');
+    $('btema').innerHTML = ico('palette') + '<span class="rt">' + t('theme') + '</span>' + CARET; $('btema').setAttribute('aria-label', t('theme')); $('btema').title = t('theme');
+    $('ptema').innerHTML = '<div class="temas" data-host="tema"></div><div class="sec only-narrow"><h3>' + t('lang') + '</h3><div data-host="linguas"></div></div>';
+    $('pmetodos').innerHTML = '<div class="sec"><h3>' + t('sc_title') + '</h3><div class="atalhos" id="atalhos"></div><p class="small">' + t('sc_note') + '</p></div>';
+    $('pfiltros').innerHTML = '<div class="sec"><h3>' + t('cats_title') + '</h3><div class="lks" style="justify-content:space-between"><span class="small" id="fvis"></span><span id="frest"></span></div><div class="catlist" id="cats"></div></div>'
+      + '<div class="sec only-narrow"><h3>' + t('era_title') + '</h3><div data-host="eras"></div></div>'
+      + '<div class="sec"><label class="check" for="gerais"><input type="checkbox" id="gerais"><span>' + t('general_chk') + '</span></label><p class="small">' + t('general_note') + '</p></div>';
+    var li = function (ks) { return '<ul>' + ks.map(function (k) { return '<li>' + t(k) + '</li>'; }).join('') + '</ul>'; };
+    $('pajuda').innerHTML = '<div class="sec"><h2>' + t(D.site ? 'titulo' : 'brand') + '</h2><p class="small">' + t('help_intro', { v: esc(D.versao) }) + '</p></div>'
+      + '<div class="sec"><h3>' + t('read_title') + '</h3>' + li(['read1', 'read2', 'read3', 'read4']) + '</div>'
+      + '<div class="sec"><h3>' + t('use_title') + '</h3>' + li(['use1', 'use2', 'use3', 'use4']) + '</div>'
+      + '<div class="sec"><h3>' + t('keys_title') + '</h3><p><kbd>/</kbd> ' + t('k_search') + ' · <kbd>Esc</kbd> ' + t('k_esc') + ' · <kbd>0</kbd> ' + t('k_fit') + ' · <kbd>+</kbd> <kbd>−</kbd> ' + t('k_zoom') + '</p></div>'
+      + '<div class="sec"><h3>' + t('general_title') + '</h3><p class="small">' + t('general_text') + '</p></div>'
+      + '<p class="small">' + t('help_foot') + '</p>'
+      + '<p class="small foot">' + (D.analytics ? t('privacy') + ' ' : '') + t('fan') + ' ' + t('data', { v: esc(D.versao), d: esc(D.gerado) }) + ' <a href="' + esc(D.repo) + '" target="_blank" rel="noopener">' + t('repo') + '</a></p>';
+    $('legenda').innerHTML = '<summary>' + t('legend') + '</summary><div class="items">'
+      + '<span><i class="lg good"></i>' + t('lg_good') + '</span><span><i class="lg bld"></i>' + t('lg_bld') + '</span><span><i class="lg lock"></i>' + t('lg_lock') + '</span>'
+      + ['ln', 'fut', 'up', 'dn'].map(function (k) { return '<span><svg class="lgl ' + k + '" width="24" height="6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3"/></svg>' + t('lg_' + k) + '</span>'; }).join('')
+      + '<span><i class="pt on"></i>' + t('lg_have') + '<i class="pt" style="margin-left:10px"></i>' + t('lg_miss') + '</span></div><div class="cats" id="legcats"></div>';
+  }
+  var ERA_PADRAO = SAVE ? 'save' : 0;
+  function filtrosAtivos() {
+    var n = 0, pad = new Set(D.ocultas);
+    D.cats.forEach(function (c) { if (ocultas.has(c) !== pad.has(c)) n++; });
+    return n + (gerais ? 1 : 0) + fora.size;
+  }
+  function botoes() {
+    // one component for every single-choice menu: a list of options, the active one with a check mark in primary
+    var opcao = function (attr, valor, rotulo, ativo) { return '<button type="button" class="op" role="menuitemradio" aria-checked="' + ativo + '" data-' + attr + '="' + valor + '"><span class="lin">' + rotulo + '</span></button>'; };
+    var eras = [[0, t('era_opt_all')], [1, t('era_opt', { e: 'I' })], [2, t('era_opt', { e: 'II' })], [3, t('era_opt', { e: 'III' })], [4, t('era_opt', { e: 'IV' })], [5, t('era_opt', { e: 'V' })]].concat(SAVE ? [['save', t('era_save', { y: D.save.label })]] : []);
+    var tEra = eras.filter(function (x) { return x[0] === era; })[0][1];
+    var nomeL = D.linguas.filter(function (l) { return l[0] === lingua; })[0][1];
+    // x = [value, accessible name and tip, short form (icon or digit), long label]
+    var duplo = function (attr, atual) { return function (x) { return '<button type="button" data-' + attr + '="' + x[0] + '" aria-pressed="' + (atual === x[0]) + '" aria-label="' + esc(x[1]) + '" data-tip="' + esc(x[1]) + '"><span class="lgo">' + esc(x[3]) + '</span><span class="cto">' + x[2] + '</span></button>'; }; };
+    var hosts = {
+      eras: '<div class="ops" role="menu" aria-label="' + esc(t('era_aria')) + '">' + eras.map(function (x) { return opcao('era', x[0], esc(x[1]), x[0] === era); }).join('') + '</div><p class="small">' + t('era_note') + '</p>',
+      linguas: '<div class="ops" role="menu" aria-label="' + esc(t('lang')) + '">' + D.linguas.map(function (l) { return opcao('lingua', l[0], '<span lang="' + l[2] + '">' + esc(l[1]) + '</span>', l[0] === lingua); }).join('') + '</div>',
+      tema: (D.site ? '<div class="sec"><h3>' + t('mode') + '</h3><div><div class="seg">' + segHtml('modo', [['auto', t('mode_auto')], ['light', t('mode_light')], ['dark', t('mode_dark')]], modo) + '</div></div></div>' : '')
+        + '<div class="sec"><h3>' + t('base') + '</h3><div class="ops dois">' + BASES.map(function (p) { return '<button type="button" class="op" role="menuitemradio" data-base-op="' + p + '" aria-checked="' + (p === base) + '"><span class="lin"><i class="am" style="background:var(--am-' + p + ')"></i>' + t('b_' + p) + '</span></button>'; }).join('') + '</div></div>'
+        + '<div class="sec"><h3>' + t('accent_t') + '</h3><div class="ops dois">' + DESTAQUES.map(function (p) { return '<button type="button" class="op" role="menuitemradio" data-dest-op="' + p + '" aria-checked="' + (p === destaque) + '"><span class="lin"><i class="am" style="background:var(--' + (p === 'none' ? 'b-primary' : 'am-' + p) + ')"></i>' + t('d_' + p) + '</span></button>'; }).join('') + '</div></div>',
+      dir: [['tras', t('dir_back'), svgIco('arrowL'), '← ' + t('dir_back')], ['ambos', t('dir_both'), svgIco('arrowLR'), t('dir_both')], ['frente', t('dir_fwd'), svgIco('arrowR'), t('dir_fwd') + ' →']].map(duplo('v', dir)).join(''),
+      passos: [[1, t('step1'), '1', t('step1')], [2, t('step_n', { n: 2 }), '2', '2'], [3, t('step_n', { n: 3 }), '3', '3'], [0, t('step_all'), '∞', t('step_all')]].map(duplo('d', passos)).join(''),
+      iso: '<button type="button" class="btn" data-iso="1" aria-pressed="' + isolado + '" aria-label="' + esc(t(isolado ? 'show_all' : 'isolate')) + '" data-tip="' + esc(t(isolado ? 'show_all' : 'isolate')) + '"><span class="lgo">' + t(isolado ? 'show_all' : 'isolate') + '</span><span class="cto">' + svgIco('scan') + '</span></button>'
+    };
+    document.querySelectorAll('[data-host]').forEach(function (el) { el.innerHTML = hosts[el.getAttribute('data-host')]; });
+    var dif = difere();
+    // one pattern for every trigger: [icon] [text] [caret]; the name of the control goes in the accessible label and in the tip
+    var vMet = dif ? t('custom') : t('sc_' + atalho);
+    $('bmetodos').innerHTML = ico('layers', dif || atalho !== 'tudo') + '<span class="rt">' + vMet + '</span>' + CARET;
+    $('bmetodos').setAttribute('aria-label', t('a_methods', { v: vMet })); $('bmetodos').title = t('a_methods', { v: vMet });
+    $('atalhos').innerHTML = ATALHOS.map(function (a) {
+      return '<button type="button" class="atalho" role="menuitemradio" data-atalho="' + a + '" aria-checked="' + (a === atalho && !dif) + '"><b>' + t('sc_' + a) + '</b>' + (a === atalho && dif ? '<span class="small">' + t('sc_last') + '</span>' : '') + '<span class="small">' + t('sc_' + a + '_d') + '</span></button>';
+    }).join('');
+    $('chip').hidden = !foco;
+    if (foco) $('chipnome').textContent = nomeNo(foco);
+    $('gerais').checked = gerais;
+    var nOc = D.cats.filter(function (c) { return ocultas.has(c); }).length;
+    // filter count = how many things differ from the default: categories, general inputs, buildings removed by hand
+    var nF = filtrosAtivos();
+    $('bfiltros').innerHTML = ico('funnel', false, nF > 0) + '<span class="rt">' + t('filters') + '</span>' + (nF ? '<span class="selo">' + (nF > 99 ? '99+' : nF) + '</span>' : '') + CARET;
+    var aF = nF ? t('a_filters', { n: nF }) : t('filters');
+    $('bfiltros').setAttribute('aria-label', aF); $('bfiltros').title = aF;
+    $('fvis').textContent = t('f_vis', { a: D.cats.length - nOc, b: D.cats.length });
+    $('frest').innerHTML = nF ? '<button type="button" class="lk" data-restaura="1">' + t('f_reset') + '</button>' : '';
+    $('cats').innerHTML = D.cats.map(function (c, i) {
+      var n = D.blds.filter(function (b) { return b.cat === c; }).length;
+      return '<label class="check" for="cat-' + i + '"><input type="checkbox" id="cat-' + i + '" data-c="' + i + '"' + (ocultas.has(c) ? '' : ' checked') + '><i class="sw" style="--cat:' + corCat(c) + '"></i><span>' + esc(nomeCat(c)) + '</span><span class="ct">' + n + '</span></label>';
+    }).join('');
+    $('bera').innerHTML = ico('hourglass', era !== ERA_PADRAO) + '<span class="rt">' + esc(tEra) + '</span>' + CARET;
+    $('bera').setAttribute('aria-label', t('a_era', { v: tEra })); $('bera').title = t('a_era', { v: tEra });
+    $('bidioma').innerHTML = ico('globe') + '<span class="rt">' + esc(nomeL) + '</span>' + CARET;
+    $('bidioma').setAttribute('aria-label', t('a_lang', { v: nomeL })); $('bidioma').title = t('a_lang', { v: nomeL });
+    POPS.forEach(function (x) { $(x[1]).setAttribute('aria-haspopup', 'menu'); });
+    $('legcats').innerHTML = D.cats.filter(function (c) { return !ocultas.has(c); }).map(function (c) { return '<span><i class="sw" style="--cat:' + corCat(c) + '"></i>' + esc(nomeCat(c)) + '</span>'; }).join('');
+  }
+  // redraws everything; "ajustar" reframes the camera (what is on screen changed), otherwise it stays where it was
+  function tudo(ajustar) {
+    // the sheet and the chain strip are built before drawing, so the camera knows how much room is left
+    painel(); botoes(); // the sheet first: it holds the chain controls that botoes() fills in
+    desenha(ajustar);
+    poeStatus();
+    escondeTip();
+    salva();
+  }
+  // only the highlight changed (pin, release, direction, reach): nothing is redrawn or hidden
+  function soRealce() {
+    painel(); botoes(); // the sheet first: it holds the chain controls that botoes() fills in
+    pintaRealce();
+    poeStatus();
+    if (foco) enquadra();
+    escondeTip();
+  }
+  function vaiPara(id) {
+    var refaz = isolado;
+    if (id && id[0] === 'b' && ocultas.has(B[id.slice(2)].cat)) { ocultas.delete(B[id.slice(2)].cat); refaz = true; }
+    if (!id) isolado = false;
+    foco = id; if (id) recolhida = false;
+    // a node that is not in the drawing (building removed from the graph, good without links) has to come in: then redraw
+    if (refaz || !LAY || (id && !LAY.N[id])) { tudo(true); if (foco && !isolado) soRealce(); }
+    else soRealce();
+  }
+  // what is ticked changed: redo the sums and the drawing, keeping the camera and the sheet scroll
+  function remarcou(idFoco) {
+    var corpo = sheet.querySelector('.sh-body'), rol = corpo ? corpo.scrollTop : 0;
+    recalcula(); tudo(false);
+    corpo = sheet.querySelector('.sh-body'); if (corpo) corpo.scrollTop = rol;
+    var again = idFoco && document.getElementById(idFoco); if (again) again.focus();
+  }
+
+  var POPS = [['pmetodos', 'bmetodos'], ['pera', 'bera'], ['pfiltros', 'bfiltros'], ['ptema', 'btema'], ['pidioma', 'bidioma'], ['pajuda', 'bajuda']];
+  var popAtual = null;
+  // opens one menu (closing any other) 4 px under its trigger, left edges aligned; on the right side of the bar the
+  // right edges are aligned instead, so the menu never leaves the window. "focar" moves the focus into the menu.
+  function abrePop(qual, focar) {
+    popAtual = null;
+    POPS.forEach(function (x) {
+      var p = $(x[0]), bt = $(x[1]);
+      p.hidden = x[0] !== qual; bt.setAttribute('aria-expanded', String(x[0] === qual));
+      if (p.hidden) return;
+      popAtual = x;
+      var app = $('app').getBoundingClientRect(), r = bt.getBoundingClientRect(), topo = Math.round(r.bottom - app.top + 4);
+      p.style.top = topo + 'px'; p.style.right = 'auto'; p.style.maxHeight = Math.max(120, app.height - topo - 8) + 'px';
+      var esq = r.left - app.left;
+      if (esq + p.offsetWidth > app.width - 8) esq = r.right - app.left - p.offsetWidth;
+      p.style.left = Math.max(8, Math.min(esq, app.width - p.offsetWidth - 8)) + 'px';
+      if (focar) { var it = itensPop(p); (it.filter(function (e) { return e.getAttribute('aria-checked') === 'true'; })[0] || it[0] || p).focus(); }
+    });
+  }
+  var itensPop = function (p) { return [].filter.call(p.querySelectorAll('button, input, a[href]'), function (e) { return e.getClientRects().length; }); };
+  // closes the open menu and gives the focus back to its trigger
+  function fechaPop() { var x = popAtual; abrePop(null); if (x) $(x[1]).focus(); }
+  var popAberto = function () { return POPS.some(function (x) { return !$(x[0]).hidden; }); };
+
+  document.addEventListener('click', function (ev) {
+    var b;
+    if ((b = ev.target.closest('button[data-atalho]'))) { aplicaAtalho(b.getAttribute('data-atalho')); recalcula(); fechaPop(); tudo(true); if (foco && !isolado) soRealce(); return; }
+    if ((b = ev.target.closest('button[data-lingua]'))) { fechaPop(); trocaLingua(b.getAttribute('data-lingua')); return; }
+    if ((b = ev.target.closest('button[data-v]'))) { dir = b.getAttribute('data-v'); if (isolado) tudo(true); else { soRealce(); salva(); } return; }
+    if ((b = ev.target.closest('button[data-d]'))) { passos = Number(b.getAttribute('data-d')); if (isolado) tudo(true); else { soRealce(); salva(); } return; }
+    if ((b = ev.target.closest('button[data-base-op]'))) { base = b.getAttribute('data-base-op'); aplicaPele(); botoes(); salva(); return; }
+    if ((b = ev.target.closest('button[data-dest-op]'))) { destaque = b.getAttribute('data-dest-op'); aplicaPele(); botoes(); salva(); return; }
+    if ((b = ev.target.closest('button[data-modo]'))) { modo = b.getAttribute('data-modo'); aplicaPele(); botoes(); salva(); return; }
+    if (ev.target.closest('[data-restaura]')) { ocultas = new Set(D.ocultas); gerais = false; fora = new Set(); recalcula(); tudo(true); if (foco && !isolado) soRealce(); abrePop('pfiltros'); return; }
+    if ((b = ev.target.closest('button[data-era]'))) { fechaPop(); poeEra(b.getAttribute('data-era')); return; }
+    if (ev.target.closest('[data-iso]')) { isolado = !isolado; tudo(true); if (!isolado) soRealce(); return; }
+    if ((b = ev.target.closest('button[data-acao]'))) {
+      var bd = B[b.getAttribute('data-b')], ac = b.getAttribute('data-acao'), gq = b.getAttribute('data-g');
+      // same rule as the global shortcuts: "all" ticks everything; "basic" and "late game" tick one method per group
+      var esc2 = ac === 'todos' ? null : escolhe(bd, ac);
+      bd.gr.forEach(function (g, gi) {
+        if (gq !== null && Number(gq) !== gi) return;
+        g.ms.forEach(function (m, mi) { M[bd.id][gi][mi] = !esc2 || mi === esc2[gi]; });
+      });
+      remarcou(null); return;
+    }
+    if ((b = ev.target.closest('[data-incl]'))) { var bi = b.getAttribute('data-incl'); if (fora.has(bi)) fora.delete(bi); else fora.add(bi); remarcou('olho'); return; }
+    if ((b = ev.target.closest('[data-go]'))) { busca.value = ''; res.hidden = true; vaiPara(b.getAttribute('data-go')); return; }
+    if (ev.target.closest('[data-limpa]') || ev.target.closest('#chip')) { vaiPara(null); return; }
+    if (ev.target.closest('#recolher')) { recolhida = !recolhida; painel(); botoes(); poeStatus(); reajusta(); return; }
+    // popovers: opened by their button, closed by clicking outside
+    var qual = null;
+    POPS.forEach(function (x) { if (ev.target.closest('#' + x[1])) qual = x[0]; });
+    if (qual) { abrePop($(qual).hidden ? qual : null); return; }
+    if (!ev.target.closest('.pop')) abrePop(null);
+    if (!ev.target.closest('.search')) res.hidden = true;
+  });
+  function poeEra(e) { era = e === 'save' ? 'save' : Number(e); recalcula(); tudo(false); if (foco && !isolado) soRealce(); }
+  function trocaLingua(c, porHash) {
+    if (c === lingua || !temLingua(c)) return;
+    poeLingua(c);
+    if (!porHash) { try { history.replaceState(null, '', '#' + c); } catch (e) { /* some frames forbid it */ } }
+    tudo(true); if (foco && !isolado) soRealce();
+  }
+  document.addEventListener('change', function (ev) {
+    var x = ev.target, i;
+    if (x.id === 'gerais') { gerais = x.checked; tudo(true); if (foco && !isolado) soRealce(); return; }
+    if ((i = x.getAttribute('data-c')) !== null && x.closest('#cats')) {
+      var c = D.cats[Number(i)];
+      if (x.checked) ocultas.delete(c); else ocultas.add(c);
+      tudo(true); if (foco && !isolado) soRealce();
+      var again = $('cat-' + i); if (again) again.focus();
+      return;
+    }
+    if (x.getAttribute('data-m') !== null && x.closest('#sheet')) {
+      M[x.getAttribute('data-b')][Number(x.getAttribute('data-g'))][Number(x.getAttribute('data-m'))] = x.checked;
+      remarcou(x.id);
+    }
+  });
+  window.addEventListener('hashchange', function () { trocaLingua((location.hash || '').replace('#', '').toLowerCase(), true); });
+  $('zmenos').addEventListener('click', function () { zoomCentro(1 / 1.3); });
+  $('zmais').addEventListener('click', function () { zoomCentro(1.3); });
+  $('zfit').addEventListener('click', ajusta);
+
+  // tips inside the sheet: the same tip box as the nodes, with the mouse or with keyboard focus (and touch, which focuses the button)
+  function dicaDe(el) {
+    var r = stage.getBoundingClientRect(), e = el.getBoundingClientRect();
+    tip.textContent = el.getAttribute('data-tip'); tip.hidden = false;
+    tip.style.left = entre(e.left - r.left, 4, Math.max(4, r.width - tip.offsetWidth - 4)) + 'px';
+    tip.style.top = Math.max(4, e.top - r.top - tip.offsetHeight - 6) + 'px';
+  }
+  var comDica = function (ev) { var el = ev.target.closest('[data-tip]'); if (el) dicaDe(el); else escondeTip(); };
+  sheet.addEventListener('mouseover', comDica);
+  sheet.addEventListener('focusin', comDica);
+  sheet.addEventListener('mouseleave', escondeTip);
+  sheet.addEventListener('focusout', escondeTip);
+
+  // search: by the name in the active language, and also by the English name
+  var busca = $('busca'), res = $('resultados'), itens = null;
+  function procura() {
+    if (!itens) {
+      var en = D.termos.en;
+      itens = D.goods.map(function (g) { return { id: 'g:' + g.id, n: nomeG(g.id), k: t('k_good'), s: norm(nomeG(g.id)) + '|' + norm(en['g:' + g.id] || '') }; })
+        .concat(D.blds.map(function (b) { return { id: 'b:' + b.id, n: N(b.id), k: nomeCat(b.cat), s: norm(N(b.id)) + '|' + norm(en[b.id] || '') }; }));
+    }
+    var q = norm(busca.value.trim());
+    if (!q) { res.hidden = true; res.innerHTML = ''; return []; }
+    var ac = itens.filter(function (x) { return x.s.indexOf(q) >= 0; }).sort(function (a, b) { return (a.s.indexOf(q) ? 1 : 0) - (b.s.indexOf(q) ? 1 : 0); }).slice(0, 14);
+    res.innerHTML = ac.length ? ac.map(function (x) { return '<button type="button" data-go="' + x.id + '">' + img(x.id) + '<span class="nm">' + esc(x.n) + '</span><span class="k">' + esc(x.k) + '</span></button>'; }).join('') : '<div class="none">' + t('search_none') + '</div>';
+    res.hidden = false;
+    return ac;
+  }
+  busca.addEventListener('input', procura);
+  busca.addEventListener('focus', procura);
+  busca.addEventListener('keydown', function (ev) {
+    if (ev.key === 'Escape') { res.hidden = true; busca.blur(); ev.stopPropagation(); return; }
+    if (ev.key === 'ArrowDown') { var p = res.querySelector('button'); if (p) { ev.preventDefault(); p.focus(); } return; }
+    if (ev.key !== 'Enter') return;
+    var ac = procura(); if (ac.length) { busca.value = ''; res.hidden = true; busca.blur(); vaiPara(ac[0].id); }
+  });
+  res.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'ArrowDown' && ev.key !== 'ArrowUp') return;
+    ev.preventDefault();
+    var alvo = ev.key === 'ArrowDown' ? ev.target.nextElementSibling : ev.target.previousElementSibling;
+    (alvo || busca).focus();
+  });
+
+  // where the focus came from: a pointer press marks it, the next key clears it (the map only shows a ring for the keyboard)
+  document.addEventListener('pointerdown', function () { document.documentElement.setAttribute('data-foco-ponteiro', ''); }, true);
+  document.addEventListener('keydown', function () { document.documentElement.removeAttribute('data-foco-ponteiro'); }, true);
+  // menus: arrow down (or Enter / space, which click) opens from the trigger; arrows, Home and End walk the items; Esc closes
+  document.addEventListener('keydown', function (ev) {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var gat = null;
+    POPS.forEach(function (x) { if (ev.target.id === x[1]) gat = x; });
+    if (gat && (ev.key === 'ArrowDown' || ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); abrePop(gat[0], true); return; }
+    if (!popAtual) return;
+    var p = $(popAtual[0]);
+    if (!p.contains(ev.target)) return;
+    var it = itensPop(p), i = it.indexOf(ev.target), n = null;
+    if (ev.key === 'ArrowDown') n = it[(i + 1) % it.length];
+    else if (ev.key === 'ArrowUp') n = it[(i - 1 + it.length) % it.length];
+    else if (ev.key === 'Home') n = it[0];
+    else if (ev.key === 'End') n = it[it.length - 1];
+    if (n) { ev.preventDefault(); n.focus(); }
+  });
+  // the map itself, focused from the keyboard: arrows move it
+  svg.addEventListener('keydown', function (ev) {
+    if (ev.target !== svg) return;
+    var d = { ArrowLeft: [60, 0], ArrowRight: [-60, 0], ArrowUp: [0, 60], ArrowDown: [0, -60] }[ev.key];
+    if (!d) return;
+    ev.preventDefault(); camManual = true; view.x += d[0]; view.y += d[1]; aplicaView();
+  });
+
+  // keyboard shortcuts
+  document.addEventListener('keydown', function (ev) {
+    if (ev.ctrlKey || ev.metaKey || ev.altKey) return;
+    var x = ev.target, digitando = x && (x.tagName === 'INPUT' && x.type !== 'checkbox' || x.tagName === 'SELECT' || x.tagName === 'TEXTAREA');
+    if (ev.key === 'Escape') {
+      if (popAberto()) { fechaPop(); return; }
+      if (digitando) { x.blur(); return; }
+      if (foco) vaiPara(null);
+      return;
+    }
+    if (digitando) return;
+    if (ev.key === '/') { ev.preventDefault(); busca.focus(); }
+    else if (ev.key === '0') ajusta();
+    else if (ev.key === '+' || ev.key === '=') zoomCentro(1.3);
+    else if (ev.key === '-' || ev.key === '−') zoomCentro(1 / 1.3);
+  });
+
+  // The map area changes size (window resized, phone rotated, the chain strip appearing). While the camera was not
+  // moved by hand, fit again; if it was, keep the zoom and keep the same point of the graph at the center.
+  // The sheet lives inside the map area and does not resize it, so fitting can never feed back into this observer.
+  var tam = { w: stage.clientWidth, h: stage.clientHeight }, tRes = null;
+  function reajusta() { if (!camManual) { ajusta(); if (foco && !isolado) enquadra(); } }
+  function mudouTamanho() {
+    var w = stage.clientWidth, h = stage.clientHeight;
+    if (!w || !h || (w === tam.w && h === tam.h)) return;
+    aplicaAltura();
+    if (camManual) {
+      view.x += (w - tam.w) / 2; view.y += (h - tam.h) / 2;
+      aplicaView();
+    } else { ajusta(); if (foco && !isolado) enquadra(); }
+    tam = { w: w, h: h };
+  }
+  var agenda = function () { clearTimeout(tRes); tRes = setTimeout(mudouTamanho, 120); };
+  if (window.ResizeObserver) new ResizeObserver(agenda).observe(stage);
+  window.addEventListener('resize', agenda); // also covers browsers that deliver the observer late
+  window.addEventListener('orientationchange', agenda);
+
+  carrega();
+  aplicaPele();
+  poeLingua(linguaInicial());
+  recalcula();
+  tudo(true);
+  tam = { w: stage.clientWidth, h: stage.clientHeight };
+})();
+</script>
