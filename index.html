@@ -294,6 +294,10 @@ kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border)
 .grid { fill: url(#dots); stroke: none; pointer-events: none; }
 .n { cursor: pointer; transition: opacity 0.12s; outline: none; }
 .n .box { fill: var(--cat, var(--muted)); stroke: none; }
+/* while the nodes slide to a new layout, the links (already at their new place) fade in */
+@keyframes settle { from { opacity: 0; } }
+.settling .e, .settling .q { animation: settle 200ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .settling .e, .settling .q { animation: none; } }
 .n .disc { fill: var(--card); stroke: var(--border); stroke-width: 1; vector-effect: non-scaling-stroke; }
 .n .hit { fill: transparent; stroke: none; }
 .n text { fill: var(--foreground); font-size: var(--nf, 12.5px); font-weight: 500; pointer-events: none; }
@@ -977,20 +981,26 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   }
 
   // ---------- layers ----------
+  // The column of a node is its manufacturing step. It comes from a precedence graph built in two passes, always
+  // refusing a link that would close a cycle:
+  //   1. the skeleton: the basic recipe of every building (first method of each main group, the "Basic" shortcut),
+  //      whatever is ticked. Extraction (mines, logging, fishing, farms, plantations) is anchored in layer 0 and what
+  //      it consumes is left out;
+  //   2. then what the TICKED methods of the main and optional groups add (support groups — automation, rail
+  //      transport, harvesting — stay out), oldest technology first, then method order, then building order.
+  // A link refused there does not count for the layers: it is drawn as a return link.
+  // Then: a building sits right after its LATEST accepted input, a good right after its EARLIEST accepted maker.
   var EXTRACTION = ['resources', 'mines', 'agro', 'plantations'];
-  // The column of a node is its manufacturing step, and it never changes: it comes from a skeleton built with the basic
-  // recipe of every building (the first method of each main group, the set of the "Basic" shortcut), whatever is ticked,
-  // whatever era is chosen and whether the view is isolated or not. In the skeleton:
-  //   extraction (mines, logging, fishing, farms, plantations) sits in layer 0 and what it consumes is ignored;
-  //   a good comes right after the EARLIEST building that makes it;
-  //   a building comes right after its LATEST input (longest path).
-  // A ticked link that goes from a layer to the same or an earlier one is a return link: drawn going around, layers untouched.
-  var skeletonCache = null;
-  function skeletonLayers() {
+  var skeletonCache = null, layerCache = null;
+  var positive = function (o) { return Object.keys(o).filter(function (k) { return o[k] > 1e-9; }).sort(function (x, y) { return GOODS[x].order - GOODS[y].order; }); };
+  var isExtraction = function (b) { return EXTRACTION.indexOf(b.category) >= 0; };
+  // buildings of the categories hidden by default (subsistence, canals…) make a bit of everything: they only count as the
+  // maker of a good when nothing else makes it
+  var isSide = function (b) { return DATA.hiddenCategories.indexOf(b.category) >= 0; };
+  // the skeleton as an ordered list of links [from, to]; a 'v:good' node stands for "the first method that makes a good
+  // no basic recipe makes" (cars, radios, hardwood, luxury goods…)
+  function skeleton() {
     if (skeletonCache) return skeletonCache;
-    var positive = function (o) { return Object.keys(o).filter(function (k) { return o[k] > 1e-9; }); };
-    var isExtraction = function (b) { return EXTRACTION.indexOf(b.category) >= 0; };
-    // basic recipe of a building, optionally with one method swapped in (used for a good no basic recipe makes)
     var basicRecipe = function (b, swapGroup, swapMethod) {
       var chosen = pickMethods(b, 'basic'), i = {}, o = {};
       b.groups.forEach(function (g, gi) {
@@ -1001,9 +1011,6 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       });
       return { inputs: positive(i), outputs: positive(o) };
     };
-    // buildings of the categories hidden by default (subsistence, canals…) make a bit of everything: they only count as the
-    // maker of a good when nothing else makes it
-    var isSide = function (b) { return DATA.hiddenCategories.indexOf(b.category) >= 0; };
     var units = [], made = {};
     DATA.buildings.forEach(function (b) {
       var r = basicRecipe(b), inputs = r.inputs;
@@ -1016,7 +1023,6 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       units.push({ id: 'b:' + b.id, b: b, inputs: isExtraction(b) ? [] : inputs, outputs: isSide(b) ? [] : r.outputs, side: isSide(b) ? r.outputs : [] });
       if (!isSide(b)) r.outputs.forEach(function (k) { made[k] = true; });
     });
-    // a good no basic recipe makes (cars, radios, hardwood, luxury goods…): its maker is the first method that makes it
     DATA.goods.forEach(function (g) {
       if (made[g.id]) return;
       var found = null;
@@ -1027,42 +1033,89 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       var r = basicRecipe(found.b, found.gi, found.m);
       units.push({ id: 'v:' + g.id, b: found.b, inputs: isExtraction(found.b) ? [] : r.inputs.filter(function (k) { return k !== g.id; }), outputs: [g.id], side: [], after: 'b:' + found.b.id });
     });
-    // Always place the unit that is ready (every input placed) and lands earliest; a good is placed by its first maker.
-    var layerOf = new Map(), pending = units.slice(), broken = [];
-    var known = function (k) { return layerOf.has('g:' + k); };
+    // Place the unit that is ready (every input placed) and lands earliest; a good is placed by its first maker. The links
+    // come out in that order, so the ones that define the skeleton are accepted before any other.
+    var at = new Map(), pending = units.slice(), links = [], later = [], broken = [];
+    var known = function (k) { return at.has('g:' + k); };
     while (pending.length) {
       var best = null;
       pending.forEach(function (u) {
-        if (!u.inputs.every(known) || (u.after && !layerOf.has(u.after))) return;
+        if (!u.inputs.every(known) || (u.after && !at.has(u.after))) return;
         var l = 0;
-        u.inputs.forEach(function (k) { l = Math.max(l, layerOf.get('g:' + k) + 1); });
-        if (u.after) l = Math.max(l, layerOf.get(u.after));
+        u.inputs.forEach(function (k) { l = Math.max(l, at.get('g:' + k) + 1); });
+        if (u.after) l = Math.max(l, at.get(u.after));
         if (!best || l < best.l) best = { u: u, l: l };
       });
       if (!best) {
-        // a cycle is left in the skeleton: cut the links into the building of the latest technology era that is still
-        // waiting (the smallest link first, by dropping every input not yet placed), and keep a record
+        // a cycle is left in the skeleton: cut the links into the waiting building of the latest technology era, and keep a record
         var late = null;
         pending.forEach(function (u) { var era = Math.max.apply(null, [0].concat(u.b.tech.map(eraOf))); if (!late || era > late.era) late = { u: u, era: era }; });
         broken.push({ building: late.u.id, inputs: late.u.inputs.filter(function (k) { return !known(k); }) });
-        late.u.inputs = late.u.inputs.filter(known); late.u.after = late.u.after && layerOf.has(late.u.after) ? late.u.after : null;
+        late.u.inputs = late.u.inputs.filter(known); late.u.after = late.u.after && at.has(late.u.after) ? late.u.after : null;
         continue;
       }
-      if (best.l % 2) best.l++; // buildings on even columns, goods on odd ones
-      if (best.u.id[0] === 'b') layerOf.set(best.u.id, best.l);
-      best.u.outputs.forEach(function (k) { if (!known(k)) layerOf.set('g:' + k, best.l + 1); });
-      pending.splice(pending.indexOf(best.u), 1);
+      var u = best.u;
+      at.set(u.id, best.l);
+      u.inputs.forEach(function (k) { links.push(['g:' + k, u.id]); });
+      if (u.after) links.push([u.after, u.id]);
+      u.outputs.forEach(function (k) { if (known(k)) later.push([u.id, 'g:' + k]); else { at.set('g:' + k, best.l + 1); links.push([u.id, 'g:' + k]); } });
+      pending.splice(pending.indexOf(u), 1);
     }
-    // what only side buildings make, then a good nothing makes: right before its first user
-    units.forEach(function (u) { u.side.forEach(function (k) { if (!known(k)) layerOf.set('g:' + k, layerOf.get(u.id) + 1); }); });
-    DATA.goods.forEach(function (g) {
-      if (known(g.id)) return;
-      var m = Infinity;
-      DATA.buildings.forEach(function (b) { b.groups.forEach(function (gr) { gr.methods.forEach(function (x) { if (x.inputs[g.id] > 1e-9) m = Math.min(m, layerOf.get('b:' + b.id)); }); }); });
-      layerOf.set('g:' + g.id, m === Infinity || m < 2 ? 1 : m - 1);
+    units.forEach(function (u) { u.side.forEach(function (k) { if (!known(k)) { at.set('g:' + k, 1); links.push([u.id, 'g:' + k]); } }); });
+    return (skeletonCache = { links: links.concat(later), broken: broken });
+  }
+  // layers for the current ticks (cached until a tick changes). Returns a Map node -> layer, with .refused (links left
+  // out because they would close a cycle, as 'from>to') and .offered (every link that took part)
+  function currentLayers() {
+    var signature = DATA.buildings.map(function (b) { return ticked[b.id].map(function (g) { return g.map(function (v) { return v ? 1 : 0; }).join(''); }).join('.'); }).join('|');
+    if (layerCache && layerCache.signature === signature) return layerCache.layerOf;
+    var out = {}, inn = {}, refused = {}, offered = {};
+    var reaches = function (from, to) { // is there a path from -> to among the accepted links?
+      var seen = new Set([from]), stack = [from], n, i, l;
+      while (stack.length) { n = stack.pop(); if (n === to) return true; l = out[n] || []; for (i = 0; i < l.length; i++) if (!seen.has(l[i])) { seen.add(l[i]); stack.push(l[i]); } }
+      return false;
+    };
+    var offer = function (a, b) {
+      var key = a + '>' + b;
+      if (offered[key]) return; offered[key] = true;
+      if (a === b || reaches(b, a)) { refused[key] = true; return; }
+      (out[a] = out[a] || []).push(b); (inn[b] = inn[b] || []).push(a);
+    };
+    skeleton().links.forEach(function (l) { offer(l[0], l[1]); });
+    var extra = [];
+    DATA.buildings.forEach(function (b) {
+      b.groups.forEach(function (g, gi) {
+        if (g.isSupport) return;
+        g.methods.forEach(function (m, mi) { if (ticked[b.id][gi][mi]) extra.push({ b: b, m: m, mi: mi, era: Math.max.apply(null, [0].concat(m.tech.map(eraOf))) }); });
+      });
     });
-    layerOf.broken = broken;
-    return (skeletonCache = layerOf);
+    extra.sort(function (x, y) { return x.era - y.era || x.mi - y.mi || x.b.order - y.b.order; });
+    extra.forEach(function (x) {
+      var id = 'b:' + x.b.id;
+      if (!isExtraction(x.b)) positive(x.m.inputs).forEach(function (k) { offer('g:' + k, id); });
+      if (!isSide(x.b)) positive(x.m.outputs).forEach(function (k) { offer(id, 'g:' + k); });
+    });
+    var layerOf = new Map();
+    var layer = function (n) {
+      if (layerOf.has(n)) return layerOf.get(n);
+      var from = inn[n] || [], l;
+      if (n[0] === 'g') { l = Infinity; from.forEach(function (p) { l = Math.min(l, layer(p) + 1); }); if (l === Infinity) l = 1; }
+      else { l = 0; from.forEach(function (p) { l = Math.max(l, layer(p) + (p[0] === 'g' ? 1 : 0)); }); } // a 'v:' node sits with its building or later
+      layerOf.set(n, l);
+      return l;
+    };
+    DATA.buildings.forEach(function (b) { layer('b:' + b.id); });
+    DATA.goods.forEach(function (g) { layer('g:' + g.id); });
+    // a good nothing makes sits right before its first user
+    DATA.goods.forEach(function (g) {
+      var id = 'g:' + g.id, m = Infinity;
+      if ((inn[id] || []).length) return;
+      (out[id] || []).forEach(function (b) { if (b[0] === 'b') m = Math.min(m, layerOf.get(b)); });
+      if (m !== Infinity && m - 1 > 1) layerOf.set(id, m - 1);
+    });
+    layerOf.refused = refused; layerOf.offered = offered;
+    layerCache = { signature: signature, layerOf: layerOf };
+    return layerOf;
   }
 
   // ---------- drawing ----------
@@ -1094,10 +1147,12 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var visible = reachable(allEdges, ix);
     var visibleEdges = allEdges.filter(function (e) { return visible.has(e.s) && visible.has(e.t); });
     var vix = indices(visibleEdges);
-    // every node keeps its skeleton layer; a view with fewer nodes (isolated chain, filters) only closes the empty columns
-    var skeleton = skeletonLayers(), layerOf = new Map();
-    visibleEdges.forEach(function (e) { layerOf.set(e.s, skeleton.get(e.s)); layerOf.set(e.t, skeleton.get(e.t)); });
-    if (pinned && !layerOf.has(pinned)) layerOf.set(pinned, skeleton.get(pinned) || 0);
+    // the layers are those of the whole graph for the current ticks; a view with fewer nodes (isolated chain, filters)
+    // only closes the empty columns
+    var allLayers = currentLayers(), layerOf = new Map();
+    visibleEdges.forEach(function (e) { layerOf.set(e.s, allLayers.get(e.s)); layerOf.set(e.t, allLayers.get(e.t)); });
+    if (pinned && !layerOf.has(pinned)) layerOf.set(pinned, allLayers.get(pinned) || 0);
+    var previous = layout ? layout.nodes : {}; // where each node was: the vertical order starts from it, and the move is animated
 
     var nodes = {};
     layerOf.forEach(function (l, id) {
@@ -1131,7 +1186,9 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var cols = {}, layerKeys = [];
     ids.forEach(function (id) { var l = nodes[id].l; if (!cols[l]) { cols[l] = []; layerKeys.push(l); } cols[l].push(nodes[id]); });
     layerKeys.sort(function (a, b) { return a - b; });
-    layerKeys.forEach(function (l) { cols[l].sort(function (a, b) { return a.order - b.order; }); cols[l].forEach(function (n, i) { n.r = (i + 0.5) / cols[l].length; }); });
+    ids.forEach(function (id) { var p = previous[id]; nodes[id].was = p ? p.cy : null; });
+    var byWas = function (a, b) { return a.was !== null && b.was !== null ? a.was - b.was : 0; };
+    layerKeys.forEach(function (l) { cols[l].sort(function (a, b) { return byWas(a, b) || a.order - b.order; }); cols[l].forEach(function (n, i) { n.r = (i + 0.5) / cols[l].length; }); });
     var viz = function (n, f) {
       (vix.inn[n.id] || []).forEach(function (e) { if (nodes[e.s].l !== n.l) f(nodes[e.s]); });
       (vix.out[n.id] || []).forEach(function (e) { if (nodes[e.t].l !== n.l) f(nodes[e.t]); });
@@ -1140,7 +1197,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     for (it = 0; it < 24; it++) {
       (it % 2 ? layerKeys.slice().reverse() : layerKeys).forEach(function (l) {
         cols[l].forEach(function (n) { var s = 0, c = 0; viz(n, function (m) { s += m.r; c++; }); n.barycenter = c ? s / c : n.r; });
-        cols[l].sort(function (a, b) { return a.barycenter - b.barycenter || a.order - b.order; });
+        cols[l].sort(function (a, b) { return a.barycenter - b.barycenter || byWas(a, b) || a.order - b.order; });
         cols[l].forEach(function (n, i) { n.r = (i + 0.5) / cols[l].length; });
       });
     }
@@ -1197,10 +1254,15 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     dims = { W: W, H: H };
     var nBuildings = ids.filter(function (id) { return id[0] === 'b'; }).length;
     counts = { nBuildings: nBuildings, nGoods: ids.length - nBuildings, nEdges: visibleEdges.length, omitted: allEdges.omitted, future: visibleEdges.filter(function (e) { return e.future; }).length, back: visibleEdges.filter(function (e) { return nodes[e.t].l <= nodes[e.s].l; }).length };
-    stage.dataset.back = counts.back; stage.dataset.cut = skeleton.broken.length;
+    // return links by cause: 'cycle' = refused because it would close a cycle; 'later' = an accepted maker that is not the
+    // earliest one; 'out' = never part of the layers (support groups, what extraction consumes)
+    var why = { cycle: 0, later: 0, out: 0 };
+    visibleEdges.forEach(function (e) { if (nodes[e.t].l > nodes[e.s].l) return; var key = e.s + '>' + e.t; why[allLayers.refused[key] ? 'cycle' : allLayers.offered[key] ? 'later' : 'out']++; });
+    stage.dataset.back = counts.back; stage.dataset.backWhy = why.cycle + '/' + why.later + '/' + why.out; stage.dataset.cut = skeleton().broken.length;
     nodeScale = 0; // forces a repaint
     if (refit) fit(); else applyView();
     stage.dataset.w = Math.round(W); stage.dataset.h = Math.round(H);
+    slideFrom(previous);
   }
   // A pinned good is drawn as a block: an opaque plate PLATE px around icon and name, so links stop at its border.
   var PLATE = 7, paintedPin = null;
@@ -1242,6 +1304,25 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       });
     });
     paintedPin = pinned;
+  }
+  // After a new layout, every node that moved slides from where it was (180 ms) and the links fade in, so the eye can
+  // follow. Nothing moves for who asked for reduced motion.
+  var slideTimer = null;
+  function slideFrom(previous) {
+    if (!Object.keys(previous).length || (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)) return;
+    var moved = [];
+    vp.querySelectorAll('.n').forEach(function (el) {
+      var id = el.getAttribute('data-n'), p = previous[id], n = layout.nodes[id];
+      if (!p || (Math.abs(p.cx - n.cx) < 0.5 && Math.abs(p.cy - n.cy) < 0.5)) return;
+      el.style.transition = 'none'; el.style.transform = 'translate(' + (p.cx - n.cx).toFixed(1) + 'px,' + (p.cy - n.cy).toFixed(1) + 'px)';
+      moved.push(el);
+    });
+    if (!moved.length) return;
+    vp.classList.add('settling');
+    vp.getBoundingClientRect(); // the starting position has to be laid out before the transition is set
+    moved.forEach(function (el) { el.style.transition = 'transform 180ms ease-out'; el.style.transform = ''; });
+    clearTimeout(slideTimer);
+    slideTimer = setTimeout(function () { vp.classList.remove('settling'); vp.querySelectorAll('.n').forEach(function (el) { el.style.transition = ''; el.style.transform = ''; }); }, 220);
   }
   // paints the layout with nodes at scale s (1 = base size; grows as the camera moves away)
   function paint(s) {
@@ -1874,6 +1955,11 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   function ticksChanged(focusId) {
     var body = sheet.querySelector('.sh-body'), scroll = body ? body.scrollTop : 0;
     recalculate(); renderAll(false);
+    var pn = pinned && layout.nodes[pinned];
+    if (pn) {
+      var area = freeArea(), px = pn.cx * view.k + view.x, py = pn.cy * view.k + view.y;
+      if (px < 40 || px > area.w - 40 || py < 30 || py > area.h - 30) { view.x = area.w / 2 - pn.cx * view.k; view.y = area.h / 2 - pn.cy * view.k; applyView(); }
+    }
     body = sheet.querySelector('.sh-body'); if (body) body.scrollTop = scroll;
     var again = focusId && document.getElementById(focusId); if (again) again.focus();
   }
