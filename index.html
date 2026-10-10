@@ -333,6 +333,22 @@ kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border)
 #svg.hov .e:not(.hv) { opacity: 0.25; }
 #svg.hov .q:not(.hv) { opacity: 0.25; }
 #svg.hov .n:not(.hv) { opacity: 0.25; }
+/* return links: thin dashes in the resting link color, a little fainter than a direct link (--o, lower on the outer
+   lanes); highlighted, they take the color and weight of any other link. --d is how far along its route a stretch
+   starts, so the dashes carry on from one stretch to the next */
+.ret, .rs { stroke-dasharray: 3 4; stroke-dashoffset: calc(var(--d, 0) * var(--k, 1) * 1px); opacity: var(--o, 0.8); }
+.rs { fill: none; stroke: var(--link); stroke-width: 1; vector-effect: non-scaling-stroke; transition: opacity 0.12s; pointer-events: none; }
+.rs.up { stroke: var(--in); }
+.rs.dn { stroke: var(--out); }
+.rs.w1 { stroke-width: 3; }
+.rs.w2 { stroke-width: 2; }
+.rs.w3 { stroke-width: 1.3; }
+.e.ret.hv, .rs.hv { opacity: 1; stroke-dasharray: 7 5; }
+#svg.hov .rs:not(.hv) { opacity: 0.2; }
+.e.ret.lit, .rs.lit, #svg.hov .e.ret.lit, #svg.hov .rs.lit { stroke: var(--foreground); stroke-width: 1.8; opacity: 1; }
+.rhit { fill: none; stroke: transparent; stroke-width: 12; vector-effect: non-scaling-stroke; pointer-events: stroke; }
+.settling .rs { animation: settle 200ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .settling .rs { animation: none; } }
 
 .tip { position: absolute; z-index: 7; pointer-events: none; max-width: 340px; background: var(--popover); color: var(--foreground); border: 1px solid var(--border); border-radius: 8px; box-shadow: var(--shadow); padding: 8px 10px; font-size: 12px; line-height: 1.35; }
 .tip b { font-weight: 600; font-size: 13px; }
@@ -364,6 +380,7 @@ svg.lgl line { stroke: var(--link); stroke-width: 1.5; }
 svg.lgl.fut line { stroke-dasharray: 5 4; }
 svg.lgl.up line { stroke: var(--in); stroke-width: 3; }
 svg.lgl.dn line { stroke: var(--out); stroke-width: 3; }
+svg.lgl.ret line { stroke-dasharray: 3 4; stroke-width: 1; }
 /* technology dot: filled = within your era, faint = beyond it */
 .pt { display: inline-block; flex: none; width: 7px; height: 7px; border-radius: 50%; background: var(--border); margin-right: 6px; }
 .pt.on { background: var(--muted-foreground); }
@@ -537,6 +554,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       read1: 'The graph shows the union of every ticked production method: every link that some of them makes possible.',
       read2: 'A filled block is a building, and its color is the category; an icon with a label is a good. <i class="dk in"></i>Blue is what goes in, and the chain upstream; <i class="dk out"></i>orange is what comes out, and the chain downstream. The same two colors mark amounts, links, column headings and the direction controls.',
       read3: 'A building uses one method per group. With more than one ticked in the same group, the amount becomes a range: “40–100” is the minimum and the maximum among the ticked combinations; “up to 15” means it is zero in some combination.',
+      read5: 'A thin dashed line that leaves the graph, runs along the corridor above or below it and comes back in is an input that is made further ahead: tools for the mines, engines for the oil rigs. Hover it to see what it carries.',
       read4: 'Solid link: possible with the technologies you have. Dashed: needs a future technology. A building you cannot build yet is faded. In the tables, a filled dot marks a technology you have and a faint one, a technology you lack. Pick your era on the top bar.',
       use_title: 'How to use it',
       use1: 'Mouse wheel or pinch zooms; drag to move. From 100% zoom on, every amount is shown.',
@@ -553,7 +571,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       fan: 'Fan-made tool, not affiliated with Paradox Interactive. Victoria 3 names and icons belong to Paradox Interactive.',
       privacy: 'No ads, no cookies. Anonymous visit counts only (Vercel Web Analytics).', data: 'Data read from game version {v}, generated on {d}.', repo: 'Source code',
       legend: 'Legend', lg_good: 'good', lg_bld: 'building: in from the left, out to the right; the fill is its category', lg_lock: 'building you cannot build yet',
-      lg_ln: 'link possible with your technologies', lg_fut: 'link that needs a future technology', lg_up: 'upstream: what this is made of (blue)', lg_dn: 'downstream: where this goes (orange)',
+      lg_ln: 'link possible with your technologies', lg_fut: 'link that needs a future technology', lg_ret: 'thin dashes around the graph: an input made further ahead', ret_tip: '{a} → {b}: {q} per level', lg_up: 'upstream: what this is made of (blue)', lg_dn: 'downstream: where this goes (orange)',
       lg_have: 'technology you have', lg_miss: 'technology you lack',
       zoom: 'Zoom', zoom_out: 'Zoom out', zoom_in: 'Zoom in', fit: 'Fit', graph_aria: 'Production graph', node_b: 'Building {n}', node_g: 'Good {n}',
       hint: 'Hover a node to see its chain; click to pin it and choose methods.',
@@ -604,6 +622,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       read1: 'O grafo mostra a união de todos os métodos de produção marcados: toda ligação que algum deles torna possível.',
       read2: 'Bloco cheio é edifício, e a cor é a categoria dele; ícone com rótulo é mercadoria. <i class="dk in"></i>Azul é o que entra, e a cadeia para trás; <i class="dk out"></i>laranja é o que sai, e a cadeia para a frente. As mesmas duas cores marcam quantidades, ligações, títulos de coluna e os controles de direção.',
       read3: 'Cada edifício usa um método por grupo. Com mais de um marcado no mesmo grupo, a quantidade vira uma faixa: “40–100” é o mínimo e o máximo entre as combinações marcadas; “até 15” quer dizer que em alguma combinação é zero.',
+      read5: 'Linha tracejada fina que sai do grafo, corre pelo corredor acima ou abaixo dele e volta a entrar é um insumo fabricado mais à frente: ferramentas para as minas, motores para os poços de petróleo. Passe o mouse para ver o que ela leva.',
       read4: 'Ligação cheia: dá para fazer com as tecnologias que você tem. Tracejada: depende de tecnologia futura. O edifício que você ainda não pode construir fica esmaecido. Nas tabelas, o ponto cheio marca tecnologia que você tem e o ponto apagado, a que falta. Escolha a sua era na barra do topo.',
       use_title: 'Como usar',
       use1: 'Roda do mouse ou pinça aproxima; arrastar move. A partir de 100% de zoom todas as quantidades aparecem.',
@@ -620,7 +639,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       fan: 'Ferramenta de fã, sem vínculo com a Paradox Interactive. Os nomes e ícones de Victoria 3 pertencem à Paradox Interactive.',
       privacy: 'Sem anúncios, sem cookies. Só contagem anônima de visitas (Vercel Web Analytics).', data: 'Dados lidos da versão {v} do jogo, gerados em {d}.', repo: 'Código-fonte',
       legend: 'Legenda', lg_good: 'mercadoria', lg_bld: 'edifício: entra pela esquerda, sai pela direita; a cor é a categoria', lg_lock: 'edifício que você ainda não pode construir',
-      lg_ln: 'ligação possível com as suas tecnologias', lg_fut: 'ligação que depende de tecnologia futura', lg_up: 'para trás: do que isto é feito (azul)', lg_dn: 'para a frente: para onde isto vai (laranja)',
+      lg_ln: 'ligação possível com as suas tecnologias', lg_fut: 'ligação que depende de tecnologia futura', lg_ret: 'tracejado fino por fora do grafo: insumo fabricado mais à frente', ret_tip: '{a} → {b}: {q} por nível', lg_up: 'para trás: do que isto é feito (azul)', lg_dn: 'para a frente: para onde isto vai (laranja)',
       lg_have: 'tecnologia que você tem', lg_miss: 'tecnologia que falta',
       zoom: 'Zoom', zoom_out: 'Afastar', zoom_in: 'Aproximar', fit: 'Ajustar', graph_aria: 'Grafo de produção', node_b: 'Edifício {n}', node_g: 'Mercadoria {n}',
       hint: 'Passe o mouse num nó para ver a cadeia dele; clique para fixar e escolher métodos.',
@@ -1126,6 +1145,80 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   var BUILDING_ICON = 24, GOOD_ICON = 16;     // icon side in a building and in a good
   var DISC = 24;             // diameter of the disc under a good's icon
   var layout = null, nodeScale = 0;
+  // Return links (to the same or an earlier column) leave the middle of the graph: out of the source, along a channel
+  // between two columns to a lane above (or below) everything, along the lane, and down another channel to the target.
+  var LANE_GAP = 7, LANE_OFF = 22, TRACK = 6, CHANNEL_PAD = 6, TURN = 6;
+  // Decides lanes and channels once the nodes are placed, and makes room for the channels: the columns to the right of a
+  // channel move right, everything moves down by the height of the lanes on top. Returns the extra width and heights.
+  function planCorridors(nodes, cols, layerKeys, edges, height) {
+    // a slot is a column of nodes sharing one center (a zigzag column is two slots); a gap is the space before a slot
+    var slots = [];
+    layerKeys.forEach(function (l) {
+      var c = cols[l], parts = c.zigzag ? [c.filter(function (n, i) { return i % 2 === 0; }), c.filter(function (n, i) { return i % 2 === 1; })] : [c.slice()];
+      parts.forEach(function (p) {
+        if (!p.length) return;
+        var slot = { nodes: p, w: 0, cx: p[0].cx, b: p[0].b, i: slots.length, outLabel: 0, inLabel: 0 };
+        p.forEach(function (n) { slot.w = Math.max(slot.w, n.w); n.slot = slot.i; });
+        slots.push(slot);
+      });
+    });
+    var top = PAD, bottom = PAD + height, low = top + height * 0.6, bundles = {}, list = [];
+    edges.forEach(function (e) {
+      var a = nodes[e.s], b = nodes[e.t];
+      // room an amount takes next to its building at 100% zoom, when every amount is shown (from afar only the highlighted ones are)
+      var room = range(e.qMin, e.qMax).length * 0.62 * 11 + 9 + 4;
+      if (b.b) slots[b.slot].inLabel = Math.max(slots[b.slot].inLabel, room); else slots[a.slot].outLabel = Math.max(slots[a.slot].outLabel, room);
+      e.ret = b.l <= a.l && b.slot < a.slot; e.bundle = null;
+      if (!e.ret) return;
+      // the lane on top is the rule; the one below only when both ends are well into the lower half and that way is clearly shorter
+      var up = (a.cy - top) + (b.cy - top), down = (bottom - a.cy) + (bottom - b.cy);
+      var side = a.cy > low && b.cy > low && down * 2 < up ? 'bottom' : 'top';
+      // links out of the same good share one trunk; a link out of a building goes alone
+      var key = (a.b ? e.s + '>' + e.t : e.s) + '|' + side, bu = bundles[key];
+      if (!bu) { bu = bundles[key] = { key: key, source: a, side: side, edges: [], order: a.order, firstSlot: Infinity, targets: {}, xd: {} }; list.push(bu); }
+      bu.edges.push(e); e.bundle = bu;
+      bu.firstSlot = Math.min(bu.firstSlot, b.slot);
+      (bu.targets[b.slot - 1] = bu.targets[b.slot - 1] || []).push(e);
+    });
+    // lanes nest like brackets: the shortest spans next to the graph, the longest outside; then by good
+    var lanes = { top: [], bottom: [] };
+    list.sort(function (x, y) { return (x.source.slot - x.firstSlot) - (y.source.slot - y.firstSlot) || x.order - y.order || (x.key < y.key ? -1 : 1); });
+    list.forEach(function (bu) { bu.lane = lanes[bu.side].length; lanes[bu.side].push(bu); });
+    // channels: in each gap, first the lines going up from the slot on the left, then the ones coming down to the slot on the right
+    var gaps = {}, gapOf = function (k) { return gaps[k] || (gaps[k] = { k: k, tracks: [] }); };
+    list.forEach(function (bu) { gapOf(bu.source.slot).tracks.push({ bu: bu, up: true }); });
+    list.forEach(function (bu) { Object.keys(bu.targets).forEach(function (k) { gapOf(Number(k)).tracks.push({ bu: bu, up: false, k: Number(k) }); }); });
+    var shift = 0, extra = 0, shifts = [], grow = function (slot) { return slot.w * (MAX_SCALE - 1) / 2; };
+    slots.forEach(function (slot, i) {
+      var g = gaps[i - 1];
+      if (g) {
+        // from left to right: amounts of the buildings on the left, the channel, amounts of the buildings on the right;
+        // each side also keeps clear of the nodes at their largest (they grow as the camera moves away)
+        var left = i ? slots[i - 1] : null;
+        g.before = left ? Math.max(left.b ? left.outLabel : 0, grow(left) + TURN + 4) : 0; g.after = Math.max(slot.b ? slot.inLabel : 0, grow(slot) + TURN + 4);
+        var need = g.before + g.after + (g.tracks.length - 1) * TRACK + 2 * CHANNEL_PAD;
+        var free = left ? (slot.cx - slot.w / 2) - (left.cx + left.w / 2) : slot.cx - slot.w / 2 - 8;
+        if (need > free) { shift += need - free; extra += need - free; }
+        g.x = slot.cx + shift - slot.w / 2 - g.after - CHANNEL_PAD - (g.tracks.length - 1) * TRACK;
+        g.tracks.forEach(function (tr, j) { if (tr.up) tr.bu.xr = g.x + j * TRACK; else tr.bu.xd[tr.k] = g.x + j * TRACK; });
+      }
+      shifts.push(shift);
+    });
+    // a line going up from the last slot has its channel after it
+    var last = gaps[slots.length - 1];
+    if (last) {
+      var end = slots[slots.length - 1], x0 = end.cx + shift + end.w / 2 + Math.max(end.b ? end.outLabel : 0, grow(end) + TURN + 4) + CHANNEL_PAD;
+      last.tracks.forEach(function (tr, j) { tr.bu.xr = x0 + j * TRACK; });
+      extra += Math.max(0, x0 + last.tracks.length * TRACK + 8 - (end.cx + shift + end.w / 2 + PAD));
+    }
+    var topRoom = lanes.top.length ? LANE_OFF + (lanes.top.length - 1) * LANE_GAP + 10 : 0, bottomRoom = lanes.bottom.length ? LANE_OFF + (lanes.bottom.length - 1) * LANE_GAP + 10 : 0;
+    slots.forEach(function (slot, i) { slot.nodes.forEach(function (n) { n.cx += shifts[i]; n.cy += topRoom; }); });
+    list.forEach(function (bu) {
+      bu.y = bu.side === 'top' ? PAD + topRoom - LANE_OFF - bu.lane * LANE_GAP : PAD + topRoom + height + LANE_OFF + bu.lane * LANE_GAP;
+      bu.opacity = Math.max(0.4, 0.8 - 0.045 * bu.lane); // the outer the lane, the fainter at rest
+    });
+    return { bundles: list, extraW: extra, top: topRoom, bottom: bottomRoom };
+  }
   // up to two lines of about `max` Latin letters; breaks at spaces, or anywhere for scripts without them
   function wrapName(name, max) {
     var parts = name.split(' '), layerKeys = [''], i;
@@ -1238,7 +1331,9 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var y0 = Infinity, y1 = -Infinity;
     ids.forEach(function (id) { y0 = Math.min(y0, nodes[id].y); y1 = Math.max(y1, nodes[id].y + nodes[id].h); });
     ids.forEach(function (id) { nodes[id].cy += PAD - y0; });
-    var H = y1 - y0 + PAD * 2;
+    var corridors = planCorridors(nodes, cols, layerKeys, visibleEdges, y1 - y0);
+    W += corridors.extraW;
+    var H = y1 - y0 + PAD * 2 + corridors.top + corridors.bottom;
 
     // ports: on buildings, one per link, ordered by the height of the other end (kept as a fraction of the height)
     ids.forEach(function (id) {
@@ -1250,14 +1345,14 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     });
 
     visibleEdges.forEach(function (e, i) { e.i = i; });
-    layout = { nodes: nodes, ids: ids, visibleEdges: visibleEdges, ix: vix };
+    layout = { nodes: nodes, ids: ids, visibleEdges: visibleEdges, ix: vix, bundles: corridors.bundles };
     dims = { W: W, H: H };
     var nBuildings = ids.filter(function (id) { return id[0] === 'b'; }).length;
-    counts = { nBuildings: nBuildings, nGoods: ids.length - nBuildings, nEdges: visibleEdges.length, omitted: allEdges.omitted, future: visibleEdges.filter(function (e) { return e.future; }).length, back: visibleEdges.filter(function (e) { return nodes[e.t].l <= nodes[e.s].l; }).length };
+    counts = { nBuildings: nBuildings, nGoods: ids.length - nBuildings, nEdges: visibleEdges.length, omitted: allEdges.omitted, future: visibleEdges.filter(function (e) { return e.future; }).length, back: visibleEdges.filter(function (e) { return e.ret; }).length };
     // return links by cause: 'cycle' = refused because it would close a cycle; 'later' = an accepted maker that is not the
     // earliest one; 'out' = never part of the layers (support groups, what extraction consumes)
     var why = { cycle: 0, later: 0, out: 0 };
-    visibleEdges.forEach(function (e) { if (nodes[e.t].l > nodes[e.s].l) return; var key = e.s + '>' + e.t; why[allLayers.refused[key] ? 'cycle' : allLayers.offered[key] ? 'later' : 'out']++; });
+    visibleEdges.forEach(function (e) { if (!e.ret) return; var key = e.s + '>' + e.t; why[allLayers.refused[key] ? 'cycle' : allLayers.offered[key] ? 'later' : 'out']++; });
     stage.dataset.back = counts.back; stage.dataset.backWhy = why.cycle + '/' + why.later + '/' + why.out; stage.dataset.cut = skeleton().broken.length;
     nodeScale = 0; // forces a repaint
     if (refit) fit(); else applyView();
@@ -1275,21 +1370,61 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var tx = b.cx - b.w * s / 2 - (!b.b && pb ? PLATE : 0), ty = b.b ? b.cy + e.targetPort * Math.max(b.textHeight * s, b.portsHeight) : b.cy;
     var backward = b.l <= a.l;
     var dx = backward ? 70 : Math.max(20, (tx - sx) * 0.5);
-    var d = 'M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + dx) + ',' + f1(sy) + ' ' + f1(tx - dx) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty);
-    if (backward && (pa || pb)) {
-      // a link that runs back would swing across the pinned block: it goes around it instead, over or under (whichever side
-      // the other end is on), with a turn next to the block
-      var p = pa ? a : b, half = Math.max(p.textHeight * s, p.portsHeight) / 2 + (p.b ? 0 : PLATE);
-      var left = p.cx - p.w * s / 2 - (p.b ? 0 : PLATE), right = p.cx + p.w * s / 2 + (p.b ? 0 : PLATE), far = right - left + 90;
-      var yw = p.cy + ((pa ? ty : sy) < p.cy - 1 ? -1 : 1) * (half + 18);
-      d = pa
-        ? 'M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + 46) + ',' + f1(sy) + ' ' + f1(sx + 46) + ',' + f1(yw) + ' ' + f1(sx) + ',' + f1(yw) + ' C' + f1(sx - far) + ',' + f1(yw) + ' ' + f1(tx - dx) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty)
-        : 'M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + dx) + ',' + f1(sy) + ' ' + f1(tx + far) + ',' + f1(yw) + ' ' + f1(tx) + ',' + f1(yw) + ' C' + f1(tx - 46) + ',' + f1(yw) + ' ' + f1(tx - 46) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty);
-    }
+    // a return link is drawn by its bundle (returnRoutes); what is left to the link itself is the last turn into the port
+    var d = e.ret ? e.stub : 'M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + dx) + ',' + f1(sy) + ' ' + f1(tx - dx) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty);
     var qx = b.b ? tx - 9 * s - (pb ? 5 : 0) : sx + 5 * s + (pa ? 8 : 0), qy = (b.b ? ty : sy) - 4 * s;
     // an amount that would run into the pinned good next door moves up, clear of its ring
     if (!b.b && pb && !backward && qx + label.length * 0.62 * 11 * Math.min(s, 1.25) > tx - 9) qy = Math.min(qy, b.cy - Math.max(b.textHeight * s, b.portsHeight) / 2 - PLATE - 15);
     return { d: d, qx: f1(qx), qy: f1(qy), anchor: b.b ? 'end' : 'start' };
+  }
+  // The return links at node scale s. Every bundle is a tree: one trunk out of the source, up a channel and along its lane,
+  // a branch down the channel before each target column, and a last turn into each port. Each stretch is drawn once (so
+  // the dashes do not pile up) and knows which links run through it; the dash pattern carries on from stretch to stretch.
+  // Returns the markup of the shared stretches and of the wide invisible paths that catch the mouse.
+  function returnRoutes(s) {
+    var nodes = layout.nodes, f1 = function (v) { return v.toFixed(1); }, shared = [], hits = [], QUARTER = Math.PI * TURN / 2;
+    var ends = function (e) {
+      var a = nodes[e.s], b = nodes[e.t];
+      return {
+        sx: a.cx + a.w * s / 2 + (a.b ? 0 : 3 * s), sy: a.b ? a.cy + e.sourcePort * Math.max(a.textHeight * s, a.portsHeight) : a.cy,
+        tx: b.cx - b.w * s / 2, ty: b.b ? b.cy + e.targetPort * Math.max(b.textHeight * s, b.portsHeight) : b.cy
+      };
+    };
+    var L = function (x, y) { return ' L' + f1(x) + ',' + f1(y); };
+    layout.bundles.forEach(function (bu) {
+      var Y = bu.y, v = bu.side === 'top' ? -1 : 1, sweep = bu.side === 'top' ? 0 : 1; // v: from the nodes towards the lane
+      var A = function (x, y) { return ' A' + TURN + ',' + TURN + ' 0 0 ' + sweep + ' ' + f1(x) + ',' + f1(y); };
+      var start = ends(bu.edges[0]), sx = start.sx, sy = start.sy, xr = bu.xr;
+      var style = function (at) { return ' style="--o:' + bu.opacity.toFixed(2) + ';--d:' + at.toFixed(1) + '"'; };
+      var stretch = function (d, at, es) { shared.push('<path class="rs" data-e="' + es.map(function (e) { return e.i; }).join(',') + '"' + style(at) + ' d="' + d + '"/>'); };
+      var gapsLeft = Object.keys(bu.targets).map(Number).sort(function (x, y) { return bu.xd[y] - bu.xd[x]; }); // nearest branch first
+      var after = function (j) { var es = []; gapsLeft.slice(j).forEach(function (k) { es = es.concat(bu.targets[k]); }); return es; };
+      // trunk: out of the source, up the channel, onto the lane, as far as the first branch
+      var first = bu.xd[gapsLeft[0]];
+      var head = 'M' + f1(sx) + ',' + f1(sy) + L(xr - TURN, sy) + A(xr, sy + v * TURN) + L(xr, Y - v * TURN) + A(xr - TURN, Y);
+      var at = (xr - TURN - sx) + QUARTER + (Math.abs(Y - sy) - 2 * TURN) + QUARTER;
+      stretch(head + L(first + TURN, Y), 0, bu.edges);
+      at += xr - TURN - (first + TURN);
+      gapsLeft.forEach(function (k, j) {
+        var xd = bu.xd[k], es = bu.targets[k].map(function (e) { return { e: e, p: ends(e) }; }).sort(function (x, y) { return Math.abs(x.p.ty - Y) - Math.abs(y.p.ty - Y); });
+        var toHere = head + L(xd + TURN, Y);
+        // the lane carries on to the next branch
+        if (j < gapsLeft.length - 1) stretch('M' + f1(xd + TURN) + ',' + f1(Y) + L(bu.xd[gapsLeft[j + 1]] + TURN, Y), at, after(j + 1));
+        // the branch: off the lane, down the channel, and at each port a turn into it
+        var from = 'M' + f1(xd + TURN) + ',' + f1(Y) + A(xd, Y - v * TURN), y = Y - v * TURN, down = at + QUARTER;
+        es.forEach(function (x, i) {
+          var e = x.e, p = x.p, yy = p.ty + v * TURN;
+          stretch(from + L(xd, yy), i ? down : at, es.slice(i).map(function (z) { return z.e; }));
+          down += Math.abs(yy - y); y = yy; from = 'M' + f1(xd) + ',' + f1(yy);
+          e.stub = 'M' + f1(xd) + ',' + f1(yy) + A(xd + TURN, p.ty) + L(p.tx - 1, p.ty);
+          e.stubStyle = style(down);
+          e.reach = { x0: xd, x1: xr, y: Y };
+          hits.push('<path class="rhit" data-i="' + e.i + '" d="' + toHere + A(xd, Y - v * TURN) + L(xd, yy) + A(xd + TURN, p.ty) + L(p.tx - 1, p.ty) + '"/>');
+        });
+        if (j < gapsLeft.length - 1) at += (xd + TURN) - (bu.xd[gapsLeft[j + 1]] + TURN);
+      });
+    });
+    return { shared: shared, hits: hits };
   }
   // pinning or releasing a node only moves the links that touch it; the nodes stay where they are
   function syncPinGeometry() {
@@ -1327,10 +1462,10 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   // paints the layout with nodes at scale s (1 = base size; grows as the camera moves away)
   function paint(s) {
     var nodes = layout.nodes, f1 = function (v) { return v.toFixed(1); };
-    var edgeHtml = [], nodeHtml = [], qtyHtml = [];
+    var edgeHtml = [], nodeHtml = [], qtyHtml = [], routes = returnRoutes(s);
     layout.visibleEdges.forEach(function (e) {
       var g = edgeGeom(e, s);
-      edgeHtml.push('<path class="e' + (e.future ? ' fut' : '') + '" data-s="' + e.s + '" data-t="' + e.t + '" marker-end="url(#arr)" d="' + g.d + '"/>');
+      edgeHtml.push('<path class="e' + (e.future ? ' fut' : '') + (e.ret ? ' ret' : '') + '" data-s="' + e.s + '" data-t="' + e.t + '"' + (e.ret ? e.stubStyle : '') + ' marker-end="url(#arr)" d="' + g.d + '"/>');
       qtyHtml.push('<text class="q" data-s="' + e.s + '" data-t="' + e.t + '" x="' + g.qx + '" y="' + g.qy + '" text-anchor="' + g.anchor + '">' + esc(range(e.qMin, e.qMax)) + '</text>');
     });
     layout.ids.forEach(function (id) {
@@ -1359,7 +1494,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       nodeHtml.push('<g class="' + cls + '" data-n="' + id + '" data-l="' + n.l + '"' + (n.b ? ' style="--cat:' + n.color + '"' : '') + ' tabindex="0" role="button" aria-label="' + esc(t(n.b ? 'node_b' : 'node_g', { n: nodeName(id) })) + '">' + ring + body + '</g>');
     });
     // the dot grid lives inside the camera group, so it follows zoom and pan
-    vp.innerHTML = '<rect class="grid" x="-30000" y="-30000" width="60000" height="60000"/>' + edgeHtml.join('') + nodeHtml.join('') + qtyHtml.join('');
+    vp.innerHTML = '<rect class="grid" x="-30000" y="-30000" width="60000" height="60000"/>' + edgeHtml.join('') + routes.shared.join('') + routes.hits.join('') + nodeHtml.join('') + qtyHtml.join('');
     svg.style.setProperty('--nf', (12.5 * s).toFixed(2) + 'px');
     svg.style.setProperty('--qf', (11 * Math.min(s, 1.25)).toFixed(2) + 'px');
     paintedPin = pinned;
@@ -1372,6 +1507,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var s = Math.round(clamp(0.86 / view.k, 1, MAX_SCALE) * 20) / 20;
     if (s !== nodeScale) { nodeScale = s; paint(s); }
     vp.setAttribute('transform', 'translate(' + view.x.toFixed(1) + ',' + view.y.toFixed(1) + ') scale(' + view.k.toFixed(4) + ')');
+    svg.style.setProperty('--k', view.k.toFixed(4)); // the dashes of a return link are in screen pixels: their phase follows the zoom
     var l = view.k < 1 ? 'far' : 'near';
     if (l !== lod) { if (lod) svg.classList.remove('lod-' + lod); svg.classList.add('lod-' + l); lod = l; }
     stage.dataset.k = view.k.toFixed(3); stage.dataset.x = Math.round(view.x); stage.dataset.y = Math.round(view.y); stage.dataset.lod = lod; stage.dataset.s = s;
@@ -1389,7 +1525,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     if (pinned && !isolated) a.h = Math.max(a.h, stage.clientHeight - 40); // with a pinned node and no isolation, the map does not shrink because of the open sheet
     var fitAllScale = Math.min((a.w - 2 * m) / dims.W, (a.h - 2 * m) / dims.H);
     // on a narrow screen, fitting everything would make the map unreadable: fit the height and let it pan sideways
-    var k = clamp(Math.max(fitAllScale, Math.min((a.h - 2 * m) / dims.H, pinned && isolated ? 0.75 : 0.45)), 0.08, 1.25);
+    // (on a wide screen the floor is lower, so the whole graph and its corridors stay in view with everything ticked)
+    var k = clamp(Math.max(fitAllScale, Math.min((a.h - 2 * m) / dims.H, pinned && isolated ? 0.75 : a.w >= 1000 ? 0.34 : 0.45)), 0.08, 1.25);
     view.k = k;
     view.x = dims.W * k <= a.w ? (a.w - dims.W * k) / 2 : m;
     view.y = (a.h - dims.H * k) / 2;
@@ -1555,6 +1692,13 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       edgeEls[e.i].setAttribute('marker-end', 'url(#' + (v.side === 'up' ? 'arru' : 'arrd') + ')');
       qtyEls[e.i].classList.add('hv', v.side);
     });
+    // a shared stretch of a return bundle lights up with the nearest of the highlighted links that run through it
+    var lit = {}; c.edgesInChain.forEach(function (v, e) { lit[e.i] = v; });
+    vp.querySelectorAll('.rs').forEach(function (el) {
+      var best = null;
+      el.getAttribute('data-e').split(',').forEach(function (i) { var v = lit[i]; if (v && (!best || v.d < best.d)) best = v; });
+      if (best) el.classList.add('hv', best.side, 'w' + Math.min(3, best.d));
+    });
     vp.querySelectorAll('.n').forEach(function (n) {
       var v = c.nodesInChain.get(n.getAttribute('data-n'));
       if (v) n.classList.add('hv', v.side === 'up' ? 'chain-up' : v.side === 'dn' ? 'chain-down' : (pinned ? 'self' : 'hover-only'));
@@ -1566,15 +1710,29 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   // brings the highlighted chain into view: only moves when it is not entirely visible
   function frameChain() {
     var c = lastChain; if (!c) return;
-    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
-    c.nodesInChain.forEach(function (v, id) {
-      var n = layout.nodes[id], w = n.w * nodeScale / 2, h = Math.max(n.textHeight * nodeScale, n.portsHeight) / 2;
-      x0 = Math.min(x0, n.cx - w); x1 = Math.max(x1, n.cx + w); y0 = Math.min(y0, n.cy - h); y1 = Math.max(y1, n.cy + h);
+    var box = function () { return { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity }; };
+    var add = function (b, x0, y0, x1, y1) { b.x0 = Math.min(b.x0, x0); b.y0 = Math.min(b.y0, y0); b.x1 = Math.max(b.x1, x1); b.y1 = Math.max(b.y1, y1); };
+    var addNode = function (b, id) { var n = layout.nodes[id], w = n.w * nodeScale / 2, h = Math.max(n.textHeight * nodeScale, n.portsHeight) / 2; add(b, n.cx - w, n.cy - h, n.cx + w, n.cy + h); };
+    var all = box(), must = box(), returns = 0; // must: the pinned node and the return links of its chain, end to end
+    c.nodesInChain.forEach(function (v, id) { addNode(all, id); });
+    addNode(must, pinned);
+    c.edgesInChain.forEach(function (v, e) {
+      if (!e.ret) return;
+      returns++;
+      [all, must].forEach(function (b) { add(b, e.reach.x0 - 8, e.reach.y - 8, e.reach.x1 + 8, e.reach.y + 8); });
+      addNode(must, e.s); addNode(must, e.t);
     });
     var a = freeArea(), m = 22, k = view.k;
-    if (x0 * k + view.x >= m && x1 * k + view.x <= a.w - m && y0 * k + view.y >= m && y1 * k + view.y <= a.h - m) return;
-    if ((x1 - x0) * k <= a.w - 2 * m && (y1 - y0) * k <= a.h - 2 * m) {
-      view.x = a.w / 2 - (x0 + x1) / 2 * k; view.y = a.h / 2 - (y0 + y1) / 2 * k; // fits at the current zoom: center the chain
+    var inView = function (b) { return b.x0 * k + view.x >= m && b.x1 * k + view.x <= a.w - m && b.y0 * k + view.y >= m && b.y1 * k + view.y <= a.h - m; };
+    var fits = function (b) { return (b.x1 - b.x0) * k <= a.w - 2 * m && (b.y1 - b.y0) * k <= a.h - 2 * m; };
+    var center = function (b) { view.x = a.w / 2 - (b.x0 + b.x1) / 2 * k; view.y = a.h / 2 - (b.y0 + b.y1) / 2 * k; };
+    if (inView(all)) return;
+    if (fits(all)) center(all); // fits at the current zoom: center the chain
+    else if (returns) {
+      // the chain does not fit, but its return links must be seen whole: move, and zoom out only as much as that takes
+      if (inView(must)) return;
+      if (!fits(must)) { k = view.k = Math.max(0.08, Math.min((a.w - 2 * m) / (must.x1 - must.x0), (a.h - 2 * m) / (must.y1 - must.y0))); }
+      center(must);
     } else {
       // chain too large for the current zoom: do not zoom out (it would become unreadable), just keep the pinned node in view
       var pinnedNode = layout.nodes[pinned], px = pinnedNode.cx * k + view.x, py = pinnedNode.cy * k + view.y;
@@ -1619,14 +1777,29 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     tip.style.left = clamp(x, 4, Math.max(4, r.width - tip.offsetWidth - 4)) + 'px';
     tip.style.top = (y + tip.offsetHeight > r.height - sheet.offsetHeight - 4 ? Math.max(4, ev.clientY - r.top - tip.offsetHeight - 10) : y) + 'px';
   }
+  // a return link under the mouse lights up end to end and says what it carries
+  function lightReturn(i) {
+    vp.querySelectorAll('.lit').forEach(function (el) { el.classList.remove('lit'); });
+    if (i === null) return;
+    vp.querySelectorAll('.e')[i].classList.add('lit');
+    vp.querySelectorAll('.rs').forEach(function (el) { if (el.getAttribute('data-e').split(',').indexOf(String(i)) >= 0) el.classList.add('lit'); });
+  }
   svg.addEventListener('mouseover', function (ev) {
     if (pointers.size && moved) return;
+    var over = ev.target.closest('.rhit');
+    if (over) {
+      var e = layout.visibleEdges[Number(over.getAttribute('data-i'))];
+      hover(null); lightReturn(e.i);
+      tip.textContent = t('ret_tip', { a: nodeName(e.s), b: nodeName(e.t), q: range(e.qMin, e.qMax) }); tip.hidden = false; placeTip(ev);
+      return;
+    }
+    lightReturn(null);
     var n = ev.target.closest('[data-n]'), id = n ? n.getAttribute('data-n') : null;
     hover(id);
     if (id) { tip.innerHTML = tipHtml(id); tip.hidden = false; placeTip(ev); } else hideTip();
   });
   svg.addEventListener('mousemove', function (ev) { if (!tip.hidden) placeTip(ev); });
-  svg.addEventListener('mouseleave', function () { hover(null); hideTip(); });
+  svg.addEventListener('mouseleave', function () { hover(null); lightReturn(null); hideTip(); });
   svg.addEventListener('focusin', function (ev) { var n = ev.target.closest('[data-n]'); hover(n ? n.getAttribute('data-n') : null); });
   svg.addEventListener('focusout', function () { hover(null); });
 
@@ -1848,7 +2021,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       + '<div class="sec"><label class="check" for="general-inputs"><input type="checkbox" id="general-inputs"><span>' + t('general_chk') + '</span></label><p class="small">' + t('general_note') + '</p></div>';
     var li = function (msgKeys) { return '<ul>' + msgKeys.map(function (k) { return '<li>' + t(k) + '</li>'; }).join('') + '</ul>'; };
     $('menu-help').innerHTML = '<div class="sec"><h2>' + t(DATA.site ? 'title' : 'brand') + '</h2><p class="small">' + t('help_intro', { v: esc(DATA.gameVersion) }) + '</p></div>'
-      + '<div class="sec"><h3>' + t('read_title') + '</h3>' + li(['read1', 'read2', 'read3', 'read4']) + '</div>'
+      + '<div class="sec"><h3>' + t('read_title') + '</h3>' + li(['read1', 'read2', 'read3', 'read4', 'read5']) + '</div>'
       + '<div class="sec"><h3>' + t('use_title') + '</h3>' + li(['use1', 'use2', 'use3', 'use4']) + '</div>'
       + '<div class="sec"><h3>' + t('keys_title') + '</h3><dl class="keys">' + [['/', 'k_search'], ['Esc', 'k_esc'], ['0', 'k_fit'], ['+ −', 'k_zoom'], ['← ↑ → ↓', 'k_pan'], ['Enter', 'k_pin'], ['] .', 'k_more'], ['[ ,', 'k_less'], ['Shift+] Shift+.', 'k_max'], ['Shift+[ Shift+,', 'k_one'], ['U B D', 'k_dir'], ['I', 'k_iso']].map(function (x) { return '<dt>' + x[0].split(' ').map(function (k) { return '<kbd>' + k + '</kbd>'; }).join(' ') + '</dt><dd>' + t(x[1]) + '</dd>'; }).join('') + '</dl><p class="small">' + t('k_note') + '</p></div>'
       + '<div class="sec"><h3>' + t('general_title') + '</h3><p class="small">' + t('general_text') + '</p></div>'
@@ -1856,7 +2029,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       + '<p class="small foot">' + (DATA.analytics ? t('privacy') + ' ' : '') + t('fan') + ' ' + t('data', { v: esc(DATA.gameVersion), d: esc(DATA.generatedOn) }) + ' <a href="' + esc(DATA.repo) + '" target="_blank" rel="noopener">' + t('repo') + '</a></p>';
     $('legend-box').innerHTML = '<summary>' + iconSvg('chevR') + t('legend') + '</summary><div class="items">'
       + '<span><i class="lg good"></i>' + t('lg_good') + '</span><span><i class="lg bld"></i>' + t('lg_bld') + '</span><span><i class="lg lock"></i>' + t('lg_lock') + '</span>'
-      + ['ln', 'fut', 'up', 'dn'].map(function (k) { return '<span><svg class="lgl ' + k + '" width="24" height="6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3"/></svg>' + t('lg_' + k) + '</span>'; }).join('')
+      + ['ln', 'fut', 'ret', 'up', 'dn'].map(function (k) { return '<span><svg class="lgl ' + k + '" width="24" height="6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3"/></svg>' + t('lg_' + k) + '</span>'; }).join('')
       + '<span><i class="pt on"></i>' + t('lg_have') + '<i class="pt" style="margin-left:10px"></i>' + t('lg_miss') + '</span></div><div class="categories" id="legend-categories"></div>';
   }
   var DEFAULT_ERA = SAVE ? 'save' : 0;
