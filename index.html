@@ -216,6 +216,13 @@ img.ic { display: inline-block; flex: none; width: 20px; height: 20px; object-fi
 .cbar .seg button { height: 22px; padding: 0 8px; display: inline-flex; align-items: center; }
 .cbar .btn { height: 28px; display: inline-flex; align-items: center; gap: 6px; }
 .cbar .long { display: inline-flex; align-items: center; gap: 5px; }
+/* reach: closer / value / further, then whole chain */
+.stp { display: inline-flex; align-items: center; gap: 1px; }
+.stp .tx.sq { width: 28px; height: 28px; }
+.stp .tx.sq:disabled { opacity: 0.35; cursor: default; background: none; }
+.stp .tx.sq[aria-pressed="true"] { background: var(--primary); color: var(--primary-foreground); }
+.stp .sv { display: inline-flex; justify-content: center; min-width: 92px; font-weight: 500; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.stp [data-step="toggle"] { margin-left: 3px; }
 .cbar .short { display: none; }
 /* direction cue: the arrow takes the color of what goes in (upstream) or comes out (downstream); the label keeps the color of the control.
    On the active segment the fill is primary, so the arrow uses the shade of the same hue that holds 3:1 on it */
@@ -229,7 +236,7 @@ img.ic { display: inline-block; flex: none; width: 20px; height: 20px; object-fi
 .dk.in { background: var(--in); }
 .dk.out { background: var(--out); }
 .cbar .ico { width: 15px; height: 15px; }
-@media (max-width: 1499px) { .cbar .long { display: none; } .cbar .short { display: inline-flex; } }
+@media (max-width: 1399px) { .cbar .long { display: none; } .cbar .short { display: inline-flex; } .stp .sv { min-width: 24px; } }
 @media (max-width: 1249px) { .sh-head .ttl > .tec { display: none; } }
 @media (max-width: 1099px) { .sh-head .cat .ctx { display: none; } }
 @media (max-width: 699px) {
@@ -251,6 +258,9 @@ img.ic { display: inline-block; flex: none; width: 20px; height: 20px; object-fi
 input[type="checkbox"] { appearance: none; -webkit-appearance: none; width: 16px; height: 16px; margin: 0; flex: none; border: 1px solid var(--input); border-radius: 4px; background: var(--background); cursor: pointer; }
 input[type="checkbox"]:checked { border-color: var(--primary); background: var(--primary) var(--check) center / 12px 12px no-repeat; }
 .check .ct { color: var(--muted-foreground); font-size: 12px; margin-left: auto; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.keys { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 5px 12px; align-items: baseline; margin: 0; }
+.keys dt { white-space: nowrap; }
+.keys dd { margin: 0; color: var(--muted-foreground); }
 .pop ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
 kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border); border-radius: 4px; padding: 0 5px; background: var(--muted); }
 /* a list of choices: the selected one carries a check mark in primary */
@@ -388,13 +398,13 @@ label.tr { cursor: pointer; }
 .tb .c-mk { align-items: center; padding-right: 0; padding-left: 14px; }
 .tr > .c-nm { align-items: flex-start; }
 .tb .c-ar { align-items: center; padding-inline: 0; color: var(--muted-foreground); }
-.tr.tot > div { background: var(--muted); padding-block: 9px; }
+.tr.tot > div { background: var(--muted); padding-block: 8px; }
 /* the column header and the total stay at the top while the groups scroll under them (not when that block would take
    too much of the sheet, nor on a phone, where each row is a stacked block) */
 .tb.stick .tr.tot > div { position: sticky; top: var(--thh, 30px); z-index: 1; }
 /* a method group: one row with what is ticked in it; clicking it opens the list of its methods in place */
 .tr.grow { cursor: pointer; }
-.tr.grow > div { padding-block: 8px; }
+.tr.grow > div { padding-block: 7px; }
 .tr.grow .gn { font-weight: 600; letter-spacing: -0.01em; }
 .tr.grow .sum { color: var(--muted-foreground); }
 .tr.grow .sum .mn { color: var(--foreground); }
@@ -510,8 +520,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       custom: 'Custom', a_methods: 'Production methods: {v}', a_era: 'Technology era: {v}', a_filters: ['Filters, {n} active', 'Filters, {n} active'], a_lang: 'Language: {v}', f_vis: '{a} of {b} categories visible', f_reset: 'Restore defaults', unpin: 'Release node', filters: 'Filters', help_aria: 'Help and rules', lang: 'Language',
       chain: 'Highlighted chain', dir_back: 'Upstream', dir_both: 'Both', dir_fwd: 'Downstream', dir_back_tip: 'Upstream: what this is made of (blue)', dir_both_tip: 'Both: upstream in blue, downstream in orange', dir_fwd_tip: 'Downstream: where this goes (orange)', step1: '1 step', step_n: '{n} steps', step_all: 'Whole chain', theme: 'Theme', base: 'Base', accent_t: 'Accent', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'None', d_violet: 'Violet', d_emerald: 'Emerald', d_rose: 'Rose', d_amber: 'Amber', mode: 'Mode', mode_auto: 'Automatic', mode_light: 'Light', mode_dark: 'Dark',
       prefs: 'Preferences', isolate: 'Isolate chain', show_all: 'Show everything', help: 'Help', era_opt_all: 'All eras', era_opt: 'Up to era {e}', era_aria: 'My technologies go up to era',
-      dir_aria: 'Direction of the chain', steps_aria: 'How far to follow the chain',
-      sc_title: 'Tick methods in every building', sc_note: 'These are shortcuts, not modes: after using one, tick and untick freely in each building’s sheet.',
+      dir_aria: 'Direction of the chain', steps_aria: 'Reach',
+      sc_title: 'Tick methods in every building', sc_note: 'The page opens on Basic: one recipe per building, exact amounts. These are shortcuts, not modes: after using one, tick and untick freely in each building’s sheet.',
       sc_all: 'Everything', sc_all_d: 'Every method of every building. The graph shows all the game allows.',
       sc_basic: 'Basic', sc_basic_d: 'One method per group: the first. Optional groups stay off.',
       sc_late: 'Late game', sc_late_d: 'One method per group: the last on the list.', sc_last: 'last used; the selection changed since',
@@ -528,8 +538,11 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       use1: 'Mouse wheel or pinch zooms; drag to move. From 100% zoom on, every amount is shown.',
       use2: 'Hovering a node lights up its chain: one step each way by default.',
       use3: 'Clicking pins the highlight and opens the node’s sheet below. For a building, the sheet has one row per method group showing what is ticked in it; click a group to open its methods, each with a checkbox. Unticking redraws at once. Drag the top edge of the sheet to change its height.',
-      use4: 'With a node pinned, the controls on the right of the sheet header pick the direction and how far the chain goes (1, 2, 3 steps or the whole chain; the choice is remembered); “Isolate” hides the rest. Click the empty map or the close button to release the node.',
-      keys_title: 'Shortcuts', k_search: 'search', k_esc: 'release the node', k_fit: 'fit', k_zoom: 'zoom',
+      use4: 'With a node pinned, the controls on the right of the sheet header pick the direction and how far the chain goes (one step at a time with − and +, up to the whole chain; the choice is remembered); “Isolate” hides the rest. Click the empty map or the close button to release the node.',
+      keys_title: 'Shortcuts', k_search: 'search', k_esc: 'close what is open, then release the node', k_fit: 'fit the graph', k_zoom: 'zoom in and out',
+      k_pan: 'move the map (with the map focused)', k_pin: 'pin the focused node', k_more: 'chain: one step further', k_less: 'chain: one step closer', k_max: 'chain: whole chain', k_one: 'chain: back to one step',
+      k_dir: 'chain: upstream, both, downstream', k_iso: 'isolate the chain, or show everything', k_note: 'The chain shortcuts work while a node is pinned.',
+      step_less: 'One step closer', step_more: 'One step further', step_back: 'Back to one step',
       general_title: 'General inputs',
       general_text: 'What a building only consumes through a support group (a secondary group that does not change what it produces: automation, rail transport, harvesting machines, fences) stays off the drawing and off the highlighted chains. “Show general inputs”, in Filters, draws them all. The node’s sheet always shows the whole recipe.',
       help_foot: 'Laws, power bloc principles and regions are not simulated: a method that depends on them carries a note. What you tick is stored in this browser.',
@@ -574,8 +587,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       custom: 'Personalizado', a_methods: 'Métodos de produção: {v}', a_era: 'Era das tecnologias: {v}', a_filters: ['Filtros, {n} ativo', 'Filtros, {n} ativos'], a_lang: 'Idioma: {v}', f_vis: '{a} de {b} categorias visíveis', f_reset: 'Restaurar padrão', unpin: 'Soltar nó', filters: 'Filtros', help_aria: 'Ajuda e regras', lang: 'Idioma',
       chain: 'Cadeia realçada', dir_back: 'Para trás', dir_both: 'As duas', dir_fwd: 'Para a frente', dir_back_tip: 'Para trás: do que isto é feito (azul)', dir_both_tip: 'As duas: para trás em azul, para a frente em laranja', dir_fwd_tip: 'Para a frente: para onde isto vai (laranja)', step1: '1 passo', step_n: '{n} passos', step_all: 'Cadeia inteira', theme: 'Tema', base: 'Base', accent_t: 'Destaque', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'Nenhuma', d_violet: 'Violeta', d_emerald: 'Esmeralda', d_rose: 'Rosa', d_amber: 'Âmbar', mode: 'Modo', mode_auto: 'Automático', mode_light: 'Claro', mode_dark: 'Escuro',
       prefs: 'Preferências', isolate: 'Isolar cadeia', show_all: 'Mostrar tudo', help: 'Ajuda', era_opt_all: 'Todas as eras', era_opt: 'Até a era {e}', era_aria: 'Minhas tecnologias vão até a era',
-      dir_aria: 'Direção da cadeia', steps_aria: 'Até onde seguir a cadeia',
-      sc_title: 'Marcar métodos em todos os edifícios', sc_note: 'São atalhos, não modos: depois de usar um, marque e desmarque à vontade na folha de cada edifício.',
+      dir_aria: 'Direção da cadeia', steps_aria: 'Alcance',
+      sc_title: 'Marcar métodos em todos os edifícios', sc_note: 'A página abre em Básico: uma receita por edifício, quantidades exatas. São atalhos, não modos: depois de usar um, marque e desmarque à vontade na folha de cada edifício.',
       sc_all: 'Tudo', sc_all_d: 'Todos os métodos de todos os edifícios. O grafo mostra tudo o que o jogo permite.',
       sc_basic: 'Básico', sc_basic_d: 'Um método por grupo: o primeiro. Grupos opcionais ficam desligados.',
       sc_late: 'Fim de jogo', sc_late_d: 'Um método por grupo: o último da lista.', sc_last: 'último usado; a seleção mudou desde então',
@@ -592,8 +605,11 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       use1: 'Roda do mouse ou pinça aproxima; arrastar move. A partir de 100% de zoom todas as quantidades aparecem.',
       use2: 'Passar o mouse num nó acende a cadeia dele: um passo para cada lado, por padrão.',
       use3: 'Clicar fixa o realce e abre a folha do nó embaixo. Num edifício, a folha traz uma linha por grupo de métodos com o que está marcado nele; clique num grupo para abrir os métodos, cada um com uma caixa de marcar. Desmarcar redesenha na hora. Arraste a borda de cima da folha para mudar a altura.',
-      use4: 'Com um nó fixado, os controles à direita do cabeçalho da folha escolhem a direção e até onde a cadeia vai (1, 2, 3 passos ou a cadeia inteira; a escolha fica guardada); “Isolar” esconde o resto. Clicar no vazio ou no botão de fechar solta o nó.',
-      keys_title: 'Atalhos', k_search: 'buscar', k_esc: 'soltar o nó', k_fit: 'ajustar', k_zoom: 'zoom',
+      use4: 'Com um nó fixado, os controles à direita do cabeçalho da folha escolhem a direção e até onde a cadeia vai (um passo por vez com − e +, até a cadeia inteira; a escolha fica guardada); “Isolar” esconde o resto. Clicar no vazio ou no botão de fechar solta o nó.',
+      keys_title: 'Atalhos', k_search: 'buscar', k_esc: 'fechar o que está aberto, depois soltar o nó', k_fit: 'ajustar o grafo à tela', k_zoom: 'aproximar e afastar',
+      k_pan: 'mover o mapa (com o foco no mapa)', k_pin: 'fixar o nó em foco', k_more: 'cadeia: um passo a mais', k_less: 'cadeia: um passo a menos', k_max: 'cadeia: inteira', k_one: 'cadeia: voltar a um passo',
+      k_dir: 'cadeia: para trás, as duas, para a frente', k_iso: 'isolar a cadeia, ou mostrar tudo', k_note: 'Os atalhos de cadeia valem com um nó fixado.',
+      step_less: 'Um passo a menos', step_more: 'Um passo a mais', step_back: 'Voltar a um passo',
       general_title: 'Insumos gerais',
       general_text: 'O que um edifício só consome por um grupo de apoio (grupo secundário que não muda o que ele produz: automação, transporte ferroviário, máquinas de colheita, cercas) fica fora do desenho e das cadeias realçadas. “Mostrar insumos gerais”, em Filtros, desenha todos. A folha do nó sempre mostra a receita inteira.',
       help_foot: 'Leis, princípios de bloco e regiões não são simulados: o método que depende deles traz uma nota. O que você marca fica guardado neste navegador.',
@@ -689,6 +705,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     chevR: '<path d="m9 18 6-6-6-6"/>',
     infinity: '<path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"/>',
     minus: '<path d="M5 12h14"/>',
+    maximize: '<path d="M15 3h6v6"/><path d="m21 3-7 7"/><path d="m3 21 7-7"/><path d="M9 21H3v-6"/>',
     plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
     arrowL: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
     arrowR: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
@@ -721,16 +738,18 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   // ---------- state ----------
   var ticked = {};            // building -> per group, list of true/false: method ticked
   var excluded = new Set();  // buildings removed from the graph by hand
-  var shortcut = 'all';   // last global shortcut used
+  var shortcut = 'basic'; // last global shortcut used; the page opens on 'basic'
   var pinned = null;       // pinned node (null = none)
   var isolated = false;   // true = only the chain of the pinned node is drawn
   var hovered = null;      // node under the mouse or with keyboard focus
   var dir = 'both';     // 'upstream' | 'both' | 'downstream'
-  var steps = 1;        // how far the chain goes: 1, 2, 3 steps, or 0 = whole chain
+  var steps = 1;        // preferred reach of the chain: a number of steps, or 0 = whole chain
+  var fullIx = null;    // links of the whole graph by node (the drawn layout may hold only the isolated chain)
   var showGeneral = false;    // draw general inputs
   var openGroup = null;  // index of the method group open in the sheet (one at a time), or null
   var collapsed = false; // sheet collapsed
   var sheetHeight = 0;        // sheet height chosen by hand (0 = default)
+  var SHEET_DEFAULT = 250;    // default height of the open sheet, header included
   var BASES = ['neutral', 'stone', 'zinc', 'slate'], ACCENTS = ['none', 'violet', 'emerald', 'rose', 'amber'];
   var base = 'neutral';  // the set of neutrals
   var accent = 'none'; // accent color: replaces primary, primary-foreground and ring
@@ -773,7 +792,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     });
     return chosen;
   }
-  var SHORTCUTS = ['all', 'basic', 'late'];
+  var SHORTCUTS = ['basic', 'all', 'late'];
   function ticksFor(b, kind) {
     if (kind === 'all') return b.groups.map(function (g) { return g.methods.map(function () { return true; }); });
     var chosen = pickMethods(b, kind);
@@ -800,7 +819,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
         b.groups.forEach(function (g, gi) { g.methods.forEach(function (m, mi) { if (!ticked[b.id][gi][mi]) l.push(gi + ':' + m.id); }); });
         if (l.length) untickedMap[b.id] = l;
       });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ shortcut: shortcut, hiddenCategories: Array.from(hiddenCategories), showGeneral: showGeneral, excluded: Array.from(excluded), unticked: untickedMap, sheetHeight: sheetHeight, era: era, language: language, base: base, accent: accent, mode: mode, dir: dir, steps: steps }));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 2, shortcut: shortcut, hiddenCategories: Array.from(hiddenCategories), showGeneral: showGeneral, excluded: Array.from(excluded), unticked: untickedMap, sheetHeight: sheetHeight, era: era, language: language, base: base, accent: accent, mode: mode, dir: dir, steps: steps }));
     } catch (e) { /* no storage: the page just does not remember */ }
   }
   var stored = null;
@@ -824,18 +843,22 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   }
   function loadState() {
     migrateOldState();
-    applyShortcut('all');
+    applyShortcut('basic');
     era = SAVE ? 'save' : 0;
     try {
       var o = stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
       if (!o) return;
-      if (SHORTCUTS.indexOf(o.shortcut) >= 0) shortcut = o.shortcut;
+      // Until version 2 the page opened with everything ticked. A stored state that is exactly that old default, untouched,
+      // was never a choice: it gets the new default. Anything else is kept as it was.
+      var oldDefault = SHORTCUTS.indexOf(o.shortcut) < 0 || (!o.v && o.shortcut === 'all' && !Object.keys(o.unticked || {}).length);
+      if (!oldDefault) { applyShortcut('all'); shortcut = o.shortcut; }
       if (Array.isArray(o.hiddenCategories)) hiddenCategories = new Set(o.hiddenCategories.filter(function (c) { return DATA.categories.indexOf(c) >= 0; }));
       showGeneral = !!o.showGeneral;
       sheetHeight = Number(o.sheetHeight) || 0;
+      if (!o.v && sheetHeight === 360) sheetHeight = 0; // exactly the old default: not a choice
       // a state stored by an older version (five themes) has no base nor accent: it falls back to the defaults
       if (['upstream', 'both', 'downstream'].indexOf(o.dir) >= 0) dir = o.dir;
-      if ([0, 1, 2, 3].indexOf(o.steps) >= 0) steps = o.steps;
+      if (Number.isInteger(o.steps) && o.steps >= 0 && o.steps < 100) steps = o.steps;
       if (BASES.indexOf(o.base) >= 0) base = o.base;
       if (ACCENTS.indexOf(o.accent) >= 0) accent = o.accent;
       if (['auto', 'light', 'dark'].indexOf(o.mode) >= 0) mode = o.mode;
@@ -843,10 +866,11 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       excluded = new Set((o.excluded || []).filter(function (id) { return BUILDINGS[id]; }));
       Object.keys(o.unticked || {}).forEach(function (bid) {
         var b = BUILDINGS[bid]; if (!b) return;
+        if (oldDefault) return;
         var s = new Set(o.unticked[bid]);
         b.groups.forEach(function (g, gi) { g.methods.forEach(function (m, mi) { if (s.has(gi + ':' + m.id)) ticked[bid][gi][mi] = false; }); });
       });
-    } catch (e) { applyShortcut('all'); }
+    } catch (e) { applyShortcut('basic'); }
   }
   // language: the #anchor wins, then the stored one, then the page default (artifact) or the browser's (site), then English
   var hasLanguage = function (c) { return DATA.languages.some(function (l) { return l[0] === c; }); };
@@ -954,42 +978,91 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
 
   // ---------- layers ----------
   var EXTRACTION = ['resources', 'mines', 'agro', 'plantations'];
-  function assignLayers(allEdges, ix) {
-    // Layer by "manufacturing step": a building sits right after its farthest input, and a good right after the
-    // first building able to make it. When a cycle blocks (tools need iron, mines need tools), the building with
-    // the fewest pending inputs goes in.
-    var goodIds = new Set(), buildingIds = [], seenBuildings = new Set();
-    allEdges.forEach(function (e) {
-      var g = e.s[0] === 'g' ? e.s : e.t, b = e.s[0] === 'b' ? e.s : e.t;
-      goodIds.add(g); if (!seenBuildings.has(b)) { seenBuildings.add(b); buildingIds.push(b); }
+  // The column of a node is its manufacturing step, and it never changes: it comes from a skeleton built with the basic
+  // recipe of every building (the first method of each main group, the set of the "Basic" shortcut), whatever is ticked,
+  // whatever era is chosen and whether the view is isolated or not. In the skeleton:
+  //   extraction (mines, logging, fishing, farms, plantations) sits in layer 0 and what it consumes is ignored;
+  //   a good comes right after the EARLIEST building that makes it;
+  //   a building comes right after its LATEST input (longest path).
+  // A ticked link that goes from a layer to the same or an earlier one is a return link: drawn going around, layers untouched.
+  var skeletonCache = null;
+  function skeletonLayers() {
+    if (skeletonCache) return skeletonCache;
+    var positive = function (o) { return Object.keys(o).filter(function (k) { return o[k] > 1e-9; }); };
+    var isExtraction = function (b) { return EXTRACTION.indexOf(b.category) >= 0; };
+    // basic recipe of a building, optionally with one method swapped in (used for a good no basic recipe makes)
+    var basicRecipe = function (b, swapGroup, swapMethod) {
+      var chosen = pickMethods(b, 'basic'), i = {}, o = {};
+      b.groups.forEach(function (g, gi) {
+        if (g.isSupport) return;
+        var m = gi === swapGroup ? swapMethod : g.methods[chosen[gi]], k;
+        for (k in m.inputs) i[k] = (i[k] || 0) + m.inputs[k];
+        for (k in m.outputs) o[k] = (o[k] || 0) + m.outputs[k];
+      });
+      return { inputs: positive(i), outputs: positive(o) };
+    };
+    // buildings of the categories hidden by default (subsistence, canals…) make a bit of everything: they only count as the
+    // maker of a good when nothing else makes it
+    var isSide = function (b) { return DATA.hiddenCategories.indexOf(b.category) >= 0; };
+    var units = [], made = {};
+    DATA.buildings.forEach(function (b) {
+      var r = basicRecipe(b), inputs = r.inputs;
+      if (!inputs.length && !isExtraction(b)) {
+        // nothing goes in with the basic recipe (urban center, port, administration): it follows the first method that takes something
+        var first = null;
+        [false, true].forEach(function (support) { b.groups.forEach(function (g) { if (!!g.isSupport === support) g.methods.forEach(function (m) { if (!first && positive(m.inputs).length) first = m; }); }); });
+        if (first) inputs = positive(first.inputs);
+      }
+      units.push({ id: 'b:' + b.id, b: b, inputs: isExtraction(b) ? [] : inputs, outputs: isSide(b) ? [] : r.outputs, side: isSide(b) ? r.outputs : [] });
+      if (!isSide(b)) r.outputs.forEach(function (k) { made[k] = true; });
     });
-    var layerOf = new Map();
-    goodIds.forEach(function (g) { if (!(ix.inn[g] || []).length) layerOf.set(g, 0); });
-    // extraction (mines, logging, fishing, farms, plantations) always sits in the first layer, and what only it
-    // produces in the second: raw materials read better on the left, and what extraction consumes becomes a link back
-    buildingIds.forEach(function (b) { if (EXTRACTION.indexOf(BUILDINGS[b.slice(2)].category) >= 0) layerOf.set(b, 0); });
-    buildingIds.forEach(function (b) { if (layerOf.has(b)) (ix.out[b] || []).forEach(function (e) { if (!layerOf.has(e.t)) layerOf.set(e.t, 1); }); });
-    var pending = buildingIds.filter(function (b) { return !layerOf.has(b); });
+    // a good no basic recipe makes (cars, radios, hardwood, luxury goods…): its maker is the first method that makes it
+    DATA.goods.forEach(function (g) {
+      if (made[g.id]) return;
+      var found = null;
+      [false, true].forEach(function (side) {
+        DATA.buildings.forEach(function (b) { if (isSide(b) === side) b.groups.forEach(function (gr, gi) { gr.methods.forEach(function (m) { if (!found && m.outputs[g.id] > 1e-9) found = { b: b, gi: gi, m: m }; }); }); });
+      });
+      if (!found) return;
+      var r = basicRecipe(found.b, found.gi, found.m);
+      units.push({ id: 'v:' + g.id, b: found.b, inputs: isExtraction(found.b) ? [] : r.inputs.filter(function (k) { return k !== g.id; }), outputs: [g.id], side: [], after: 'b:' + found.b.id });
+    });
+    // Always place the unit that is ready (every input placed) and lands earliest; a good is placed by its first maker.
+    var layerOf = new Map(), pending = units.slice(), broken = [];
+    var known = function (k) { return layerOf.has('g:' + k); };
     while (pending.length) {
       var best = null;
-      pending.forEach(function (b) {
-        var pendingInputs = 0, level = -1;
-        (ix.inn[b] || []).forEach(function (e) { if (layerOf.has(e.s)) level = Math.max(level, layerOf.get(e.s)); else pendingInputs++; });
-        var c = { b: b, pendingInputs: pendingInputs, level: level + 1 };
-        if (!best || c.pendingInputs < best.pendingInputs || (c.pendingInputs === best.pendingInputs && c.level < best.level)) best = c;
+      pending.forEach(function (u) {
+        if (!u.inputs.every(known) || (u.after && !layerOf.has(u.after))) return;
+        var l = 0;
+        u.inputs.forEach(function (k) { l = Math.max(l, layerOf.get('g:' + k) + 1); });
+        if (u.after) l = Math.max(l, layerOf.get(u.after));
+        if (!best || l < best.l) best = { u: u, l: l };
       });
-      layerOf.set(best.b, best.level);
-      pending.splice(pending.indexOf(best.b), 1);
-      (ix.out[best.b] || []).forEach(function (e) { if (!layerOf.has(e.t)) layerOf.set(e.t, best.level + 1); });
+      if (!best) {
+        // a cycle is left in the skeleton: cut the links into the building of the latest technology era that is still
+        // waiting (the smallest link first, by dropping every input not yet placed), and keep a record
+        var late = null;
+        pending.forEach(function (u) { var era = Math.max.apply(null, [0].concat(u.b.tech.map(eraOf))); if (!late || era > late.era) late = { u: u, era: era }; });
+        broken.push({ building: late.u.id, inputs: late.u.inputs.filter(function (k) { return !known(k); }) });
+        late.u.inputs = late.u.inputs.filter(known); late.u.after = late.u.after && layerOf.has(late.u.after) ? late.u.after : null;
+        continue;
+      }
+      if (best.l % 2) best.l++; // buildings on even columns, goods on odd ones
+      if (best.u.id[0] === 'b') layerOf.set(best.u.id, best.l);
+      best.u.outputs.forEach(function (k) { if (!known(k)) layerOf.set('g:' + k, best.l + 1); });
+      pending.splice(pending.indexOf(best.u), 1);
     }
-    // a node with no input leans on its first neighbor to the right, so the link does not cross the whole graph
-    layerOf.forEach(function (l, n) {
-      if ((ix.inn[n] || []).length) return;
+    // what only side buildings make, then a good nothing makes: right before its first user
+    units.forEach(function (u) { u.side.forEach(function (k) { if (!known(k)) layerOf.set('g:' + k, layerOf.get(u.id) + 1); }); });
+    DATA.goods.forEach(function (g) {
+      if (known(g.id)) return;
       var m = Infinity;
-      (ix.out[n] || []).forEach(function (e) { m = Math.min(m, layerOf.get(e.t)); });
-      if (m !== Infinity && m - 1 > l) layerOf.set(n, m - 1);
+      DATA.buildings.forEach(function (b) { b.groups.forEach(function (gr) { gr.methods.forEach(function (x) { if (x.inputs[g.id] > 1e-9) m = Math.min(m, layerOf.get('b:' + b.id)); }); }); });
+      layerOf.set('g:' + g.id, m === Infinity || m < 2 ? 1 : m - 1);
     });
-    return layerOf;
+    layerOf.broken = broken;
+    return (skeletonCache = layerOf);
   }
 
   // ---------- drawing ----------
@@ -1017,11 +1090,14 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   }
   function layoutGraph(refit) {
     var allEdges = buildEdges(), ix = indices(allEdges);
+    fullIx = ix;
     var visible = reachable(allEdges, ix);
     var visibleEdges = allEdges.filter(function (e) { return visible.has(e.s) && visible.has(e.t); });
     var vix = indices(visibleEdges);
-    var layerOf = assignLayers(visibleEdges, vix);
-    if (pinned && !layerOf.has(pinned)) layerOf.set(pinned, 0);
+    // every node keeps its skeleton layer; a view with fewer nodes (isolated chain, filters) only closes the empty columns
+    var skeleton = skeletonLayers(), layerOf = new Map();
+    visibleEdges.forEach(function (e) { layerOf.set(e.s, skeleton.get(e.s)); layerOf.set(e.t, skeleton.get(e.t)); });
+    if (pinned && !layerOf.has(pinned)) layerOf.set(pinned, skeleton.get(pinned) || 0);
 
     var nodes = {};
     layerOf.forEach(function (l, id) {
@@ -1120,7 +1196,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     layout = { nodes: nodes, ids: ids, visibleEdges: visibleEdges, ix: vix };
     dims = { W: W, H: H };
     var nBuildings = ids.filter(function (id) { return id[0] === 'b'; }).length;
-    counts = { nBuildings: nBuildings, nGoods: ids.length - nBuildings, nEdges: visibleEdges.length, omitted: allEdges.omitted, future: visibleEdges.filter(function (e) { return e.future; }).length };
+    counts = { nBuildings: nBuildings, nGoods: ids.length - nBuildings, nEdges: visibleEdges.length, omitted: allEdges.omitted, future: visibleEdges.filter(function (e) { return e.future; }).length, back: visibleEdges.filter(function (e) { return nodes[e.t].l <= nodes[e.s].l; }).length };
+    stage.dataset.back = counts.back; stage.dataset.cut = skeleton.broken.length;
     nodeScale = 0; // forces a repaint
     if (refit) fit(); else applyView();
     stage.dataset.w = Math.round(W); stage.dataset.h = Math.round(H);
@@ -1198,7 +1275,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
           + (n.iconSize ? '<use href="#i-' + id.replace(':', '-') + '" x="' + f1(x0 + r - iconSize / 2) + '" y="' + f1(n.cy - iconSize / 2) + '" width="' + f1(iconSize) + '" height="' + f1(iconSize) + '"/>' : '')
           + n.lines.map(function (l, i) { return '<text x="' + f1(x0 + (DISC + 6) * s) + '" y="' + f1(y0 + i * 15 * s) + '">' + esc(l) + '</text>'; }).join('');
       }
-      nodeHtml.push('<g class="' + cls + '" data-n="' + id + '"' + (n.b ? ' style="--cat:' + n.color + '"' : '') + ' tabindex="0" role="button" aria-label="' + esc(t(n.b ? 'node_b' : 'node_g', { n: nodeName(id) })) + '">' + ring + body + '</g>');
+      nodeHtml.push('<g class="' + cls + '" data-n="' + id + '" data-l="' + n.l + '"' + (n.b ? ' style="--cat:' + n.color + '"' : '') + ' tabindex="0" role="button" aria-label="' + esc(t(n.b ? 'node_b' : 'node_g', { n: nodeName(id) })) + '">' + ring + body + '</g>');
     });
     // the dot grid lives inside the camera group, so it follows zoom and pan
     vp.innerHTML = '<rect class="grid" x="-30000" y="-30000" width="60000" height="60000"/>' + edgeHtml.join('') + nodeHtml.join('') + qtyHtml.join('');
@@ -1323,20 +1400,56 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   // downstream (where it goes) in another; the closer to the node, the thicker the link. The rest fades without vanishing.
   // Hovering shows exactly what a click would pin: the direction and reach chosen in the sheet header (one step each
   // way by default, so hovering coal or tools does not light up half the graph).
+  // how many steps the chain of a node has in the chosen direction: the distance to its farthest node (at least 1)
+  function maxReach(id) {
+    var ix = fullIx || layout.ix;
+    var depth = function (edges, otherEnd) {
+      var seen = new Set([id]), frontier = [id], d = 0, next;
+      while (frontier.length) {
+        next = [];
+        frontier.forEach(function (n) { (edges[n] || []).forEach(function (e) { var m = otherEnd(e); if (!seen.has(m)) { seen.add(m); next.push(m); } }); });
+        if (next.length) d++;
+        frontier = next;
+      }
+      return d;
+    };
+    return Math.max(1, dir === 'downstream' ? 0 : depth(ix.inn, function (e) { return e.s; }), dir === 'upstream' ? 0 : depth(ix.out, function (e) { return e.t; }));
+  }
+  // the reach in use for the pinned node: the preference, capped by what that node has (the preference itself is kept)
+  function reachNow() {
+    var max = pinned ? maxReach(pinned) : Infinity;
+    return { max: max, now: steps === 0 ? max : Math.min(steps, max) };
+  }
+  // 'further' | 'closer' | 'max' | 'one' | 'toggle' (whole chain, or back to one step when already there)
+  function setReach(action) {
+    if (!pinned) return;
+    var r = reachNow(), before = steps;
+    if (action === 'further') { if (r.now >= r.max) return; steps = r.now + 1; }
+    else if (action === 'closer') { if (r.now <= 1) return; steps = r.now - 1; }
+    else if (action === 'max') steps = 0;
+    else if (action === 'one') steps = 1;
+    else if (action === 'toggle') steps = r.now >= r.max ? 1 : 0;
+    if (steps === before) return;
+    if (isolated) renderAll(true); else { highlightOnly(); saveState(); }
+  }
+  function setDirection(v) { if (v === dir) return; dir = v; if (isolated) renderAll(true); else { highlightOnly(); saveState(); } }
+  function toggleIsolated() { isolated = !isolated; renderAll(true); if (!isolated) highlightOnly(); }
   var lastChain = null;
   function chainOf(id, pinnedMode) {
     var ix = layout.ix, nodesInChain = new Map([[id, { side: 'self', d: 0 }]]), edgesInChain = new Map();
     var limitUp = dir === 'downstream' ? 0 : (steps || Infinity);
     var limitDown = dir === 'upstream' ? 0 : (steps || Infinity);
     var walk = function (lim, side, nextEdges, otherEnd) {
-      var frontier = [id], d, next;
+      var frontier = [id], seen = new Set([id]), d, next; // each direction walks on its own: a node already lit upstream does not stop the way downstream
       for (d = 1; d <= lim && frontier.length; d++) {
         next = [];
         frontier.forEach(function (n) {
           (nextEdges[n] || []).forEach(function (e) {
             if (!edgesInChain.has(e)) edgesInChain.set(e, { side: side, d: d });
             var m = otherEnd(e);
-            if (!nodesInChain.has(m)) { nodesInChain.set(m, { side: side, d: d }); next.push(m); } // each node goes in once: cycles do not repeat
+            if (seen.has(m)) return; // each node goes in once: cycles do not repeat
+            seen.add(m); next.push(m);
+            if (!nodesInChain.has(m)) nodesInChain.set(m, { side: side, d: d });
           });
         });
         frontier = next;
@@ -1457,7 +1570,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     }).join('; ');
   }
   var effectsText = function (m) { return m.effects ? m.effects.map(function (x) { return (x[1] > 0 ? '+' : '−') + fmt(Math.abs(x[1])) + ' ' + t('ef_' + x[0]); }).join(', ') : ''; };
-  var ROW_ACTIONS = ['all', 'basic', 'late'];
+  var ROW_ACTIONS = ['basic', 'all', 'late'];
   function rowActions(bid, gi) {
     return '<span class="lks">' + ROW_ACTIONS.map(function (a) { return '<button type="button" class="lk" data-action="' + a + '" data-b="' + bid + '"' + (gi === null ? '' : ' data-g="' + gi + '"') + '>' + t('act_' + a) + '</button>'; }).join('<span class="sep">·</span>') + '</span>';
   }
@@ -1527,14 +1640,14 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     return '<div class="tb">' + h.join('') + '</div>';
   }
   // the column header and the total row stick to the top of the scrolling area, unless together they would take more than
-  // 40% of it (a very low sheet) or the layout is the stacked one of a phone
+  // 40% of the sheet (a very low one) or the layout is the stacked one of a phone
   function stickTotal() {
     var tb = sheet.querySelector('.tb'), body = sheet.querySelector('.sh-body'); if (!tb || !body) return;
     var th = tb.querySelector('.th.c-nm'), tot = tb.querySelector('.tr.tot > div'); if (!th || !tot) return;
     tb.classList.remove('stick');
     var hh = th.offsetHeight, ht = 0; [].forEach.call(tb.querySelectorAll('.tr.tot > div'), function (c) { ht = Math.max(ht, c.offsetHeight); });
     tb.style.setProperty('--thh', hh + 'px');
-    if (window.innerWidth >= 760 && hh + ht <= body.clientHeight * 0.4) tb.classList.add('stick');
+    if (window.innerWidth >= 760 && hh + ht <= sheet.offsetHeight * 0.4) tb.classList.add('stick');
   }
   // good table: one row per building, on the same tracks; consumers have a number in the blue column, producers in the orange one
   function goodTable(g) {
@@ -1578,8 +1691,16 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   // sheet height: the one chosen by hand, or a default that shows the header, the total and a few rows
   function applySheetHeight() {
     if (pinned && !collapsed) {
-      var total = stage.clientHeight, defaultHeight = Math.round(Math.min(360, total * 0.5));
-      sheet.style.height = clamp(sheetHeight || defaultHeight, 130, Math.max(130, total - 70)) + 'px';
+      // default: SHEET_DEFAULT px with the header (less in a low window; on a phone, where rows stack, up to half the map).
+      // By hand: never smaller than header + column header + total, never taller than about 70% of the window.
+      var total = stage.clientHeight, phone = window.innerWidth < 760;
+      var defaultHeight = phone ? Math.round(Math.min(360, total * 0.5)) : window.innerHeight < 600 ? Math.round(Math.min(SHEET_DEFAULT, window.innerHeight * 0.45)) : SHEET_DEFAULT;
+      var head = sheet.querySelector('.sh-head'), th = sheet.querySelector('.tb .th.c-nm'), rowH = 0;
+      [].forEach.call(sheet.querySelectorAll('.tb .tr.tot > div'), function (c) { rowH = Math.max(rowH, c.offsetHeight); });
+      var least = Math.min(defaultHeight, 13 + (head ? head.offsetHeight : 40) + (th ? th.offsetHeight : 0) + (rowH || 44));
+      var h = clamp(sheetHeight || defaultHeight, least, Math.max(least, Math.round(window.innerHeight * 0.7)));
+      if (sheetHeight) sheetHeight = h;
+      sheet.style.height = h + 'px';
     } else sheet.style.height = '';
     stage.style.setProperty('--sh', sheet.offsetHeight + 'px');
     stickTotal();
@@ -1608,7 +1729,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     sheet.className = 'sheet pinned' + (collapsed ? ' collapsed' : '');
     sheet.innerHTML = (collapsed ? '' : '<div class="grip" id="grip" role="separator" aria-orientation="horizontal" tabindex="0" aria-label="' + esc(t('grip')) + '"></div>')
       + '<div class="sh-head"><div class="ttl">' + head + '</div>'
-      + '<div class="cbar" id="cbar" role="group"><div class="seg" data-host="dir" role="group" aria-label="' + esc(t('dir_aria')) + '"></div><div class="seg" data-host="steps" role="group" aria-label="' + esc(t('steps_aria')) + '"></div><span data-host="iso"></span></div>'
+      + '<div class="cbar" id="cbar" role="group"><div class="seg" data-host="dir" role="group" aria-label="' + esc(t('dir_aria')) + '"></div><div class="stp" data-host="steps" role="group" aria-label="' + esc(t('steps_aria')) + '"></div><span data-host="iso"></span></div>'
       + '<button type="button" class="tx sq" id="collapse" aria-expanded="' + !collapsed + '" aria-label="' + esc(t(collapsed ? 'sheet_open' : 'sheet_close')) + '" data-tip="' + esc(t(collapsed ? 'sheet_open' : 'sheet_close')) + '">' + iconSvg(collapsed ? 'chevsUp' : 'chevsDown') + '</button>'
       + '<button type="button" class="tx sq" data-release="1" aria-label="' + esc(t('unpin')) + '" data-tip="' + esc(t('unpin')) + '">' + iconSvg('x') + '</button></div>'
       + (collapsed ? '' : '<div class="sh-body">' + body + '</div>');
@@ -1618,6 +1739,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     if (!ev.target.closest('.grip')) return;
     ev.preventDefault(); draggingGrip = true;
   });
+  // double click on the grip: back to the default height
+  sheet.addEventListener('dblclick', function (ev) { if (!ev.target.closest('.grip')) return; sheetHeight = 0; applySheetHeight(); refitIfAuto(); saveState(); });
   sheet.addEventListener('keydown', function (ev) {
     if (!ev.target.closest('.grip') || (ev.key !== 'ArrowUp' && ev.key !== 'ArrowDown')) return;
     ev.preventDefault();
@@ -1646,7 +1769,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     $('menu-help').innerHTML = '<div class="sec"><h2>' + t(DATA.site ? 'title' : 'brand') + '</h2><p class="small">' + t('help_intro', { v: esc(DATA.gameVersion) }) + '</p></div>'
       + '<div class="sec"><h3>' + t('read_title') + '</h3>' + li(['read1', 'read2', 'read3', 'read4']) + '</div>'
       + '<div class="sec"><h3>' + t('use_title') + '</h3>' + li(['use1', 'use2', 'use3', 'use4']) + '</div>'
-      + '<div class="sec"><h3>' + t('keys_title') + '</h3><p><kbd>/</kbd> ' + t('k_search') + ' · <kbd>Esc</kbd> ' + t('k_esc') + ' · <kbd>0</kbd> ' + t('k_fit') + ' · <kbd>+</kbd> <kbd>−</kbd> ' + t('k_zoom') + '</p></div>'
+      + '<div class="sec"><h3>' + t('keys_title') + '</h3><dl class="keys">' + [['/', 'k_search'], ['Esc', 'k_esc'], ['0', 'k_fit'], ['+ −', 'k_zoom'], ['← ↑ → ↓', 'k_pan'], ['Enter', 'k_pin'], ['] .', 'k_more'], ['[ ,', 'k_less'], ['Shift+] Shift+.', 'k_max'], ['Shift+[ Shift+,', 'k_one'], ['U B D', 'k_dir'], ['I', 'k_iso']].map(function (x) { return '<dt>' + x[0].split(' ').map(function (k) { return '<kbd>' + k + '</kbd>'; }).join(' ') + '</dt><dd>' + t(x[1]) + '</dd>'; }).join('') + '</dl><p class="small">' + t('k_note') + '</p></div>'
       + '<div class="sec"><h3>' + t('general_title') + '</h3><p class="small">' + t('general_text') + '</p></div>'
       + '<p class="small">' + t('help_foot') + '</p>'
       + '<p class="small foot">' + (DATA.analytics ? t('privacy') + ' ' : '') + t('fan') + ' ' + t('data', { v: esc(DATA.gameVersion), d: esc(DATA.generatedOn) }) + ' <a href="' + esc(DATA.repo) + '" target="_blank" rel="noopener">' + t('repo') + '</a></p>';
@@ -1669,21 +1792,30 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var languageLabel = DATA.languages.filter(function (l) { return l[0] === language; })[0][1];
     // x = [value, accessible name and tip, short form (icon or digit), long label (html)]
     var dualButton = function (attr, current) { return function (x) { return '<button type="button" data-' + attr + '="' + x[0] + '" aria-pressed="' + (current === x[0]) + '" aria-label="' + esc(x[1]) + '" data-tip="' + esc(x[1]) + '"><span class="long">' + x[3] + '</span><span class="short">' + x[2] + '</span></button>'; }; };
+    var n3 = 0;
     var hosts = {
       eras: '<div class="ops" role="menu" aria-label="' + esc(t('era_aria')) + '">' + eras.map(function (x) { return optionButton('era', x[0], esc(x[1]), x[0] === era); }).join('') + '</div><p class="small">' + t('era_note') + '</p>',
       languages: '<div class="ops" role="menu" aria-label="' + esc(t('lang')) + '">' + DATA.languages.map(function (l) { return optionButton('language', l[0], '<span lang="' + l[2] + '">' + esc(l[1]) + '</span>', l[0] === language); }).join('') + '</div>',
       theme: (DATA.site ? '<div class="sec"><h3>' + t('mode') + '</h3><div><div class="seg">' + segmentedHtml('mode', [['auto', t('mode_auto')], ['light', t('mode_light')], ['dark', t('mode_dark')]], mode) + '</div></div></div>' : '')
         + '<div class="sec"><h3>' + t('base') + '</h3><div class="ops two">' + BASES.map(function (p) { return '<button type="button" class="op" role="menuitemradio" data-base-op="' + p + '" aria-checked="' + (p === base) + '"><span class="lin"><i class="am" style="background:var(--am-' + p + ')"></i>' + t('b_' + p) + '</span></button>'; }).join('') + '</div></div>'
         + '<div class="sec"><h3>' + t('accent_t') + '</h3><div class="ops two">' + ACCENTS.map(function (p) { return '<button type="button" class="op" role="menuitemradio" data-accent-op="' + p + '" aria-checked="' + (p === accent) + '"><span class="lin"><i class="am" style="background:var(--' + (p === 'none' ? 'b-primary' : 'am-' + p) + ')"></i>' + t('d_' + p) + '</span></button>'; }).join('') + '</div></div>',
-      dir: [['upstream', t('dir_back_tip'), iconSvg('arrowL', 'd-in'), iconSvg('arrowL', 'd-in') + esc(t('dir_back'))], ['both', t('dir_both_tip'), iconSvg('arrowLR'), iconSvg('arrowLR') + esc(t('dir_both'))], ['downstream', t('dir_fwd_tip'), iconSvg('arrowR', 'd-out'), esc(t('dir_fwd')) + iconSvg('arrowR', 'd-out')]].map(dualButton('v', dir)).join(''),
-      steps: [[1, t('step1'), '1', esc(t('step1'))], [2, t('step_n', { n: 2 }), '2', '2'], [3, t('step_n', { n: 3 }), '3', '3'], [0, t('step_all'), iconSvg('infinity'), esc(t('step_all'))]].map(dualButton('d', steps)).join(''),
-      iso: '<button type="button" class="btn" data-iso="1" aria-pressed="' + isolated + '" aria-label="' + esc(t(isolated ? 'show_all' : 'isolate')) + '" data-tip="' + esc(t(isolated ? 'show_all' : 'isolate')) + '"><span class="long">' + t(isolated ? 'show_all' : 'isolate') + '</span><span class="short">' + iconSvg('scan') + '</span></button>'
+      dir: [['upstream', t('dir_back_tip'), iconSvg('arrowL', 'd-in'), iconSvg('arrowL', 'd-in') + esc(t('dir_back'))], ['both', t('dir_both_tip'), iconSvg('arrowLR'), iconSvg('arrowLR') + esc(t('dir_both'))], ['downstream', t('dir_fwd_tip'), iconSvg('arrowR', 'd-out'), esc(t('dir_fwd')) + iconSvg('arrowR', 'd-out')]].map(dualButton('v', dir)).join('').replace(/data-tip="([^"]*)"/g, function (m, tip) { return 'data-tip="' + tip + '  ' + ['U', 'B', 'D'][n3++] + '"'; }),
+      steps: (function () {
+        if (!pinned) return '';
+        var r = reachNow(), whole = r.now >= r.max, count = r.now === 1 ? t('step1') : t('step_n', { n: r.now });
+        var sb = function (action, icon, label, key, off, pressed) { return '<button type="button" class="tx sq" data-step="' + action + '" aria-label="' + esc(label) + '" data-tip="' + esc(label + '  ' + key) + '"' + (off ? ' disabled' : '') + (pressed === undefined ? '' : ' aria-pressed="' + pressed + '"') + '>' + iconSvg(icon) + '</button>'; };
+        return sb('closer', 'minus', t('step_less'), '[', r.now <= 1)
+          + '<span class="sv" aria-live="polite" data-tip="' + esc(whole ? t('step_all') + ': ' + count : count) + '"><span class="long">' + esc(whole ? t('step_all') : count) + '</span><span class="short">' + (whole ? iconSvg('infinity') : r.now) + '</span><span class="vh">' + esc(whole ? count : '') + '</span></span>'
+          + sb('further', 'plus', t('step_more'), ']', whole)
+          + sb('toggle', 'maximize', whole ? t('step_back') : t('step_all'), whole ? 'Shift+[' : 'Shift+]', false, whole);
+      })(),
+      iso: '<button type="button" class="btn" data-iso="1" aria-pressed="' + isolated + '" aria-label="' + esc(t(isolated ? 'show_all' : 'isolate')) + '" data-tip="' + esc(t(isolated ? 'show_all' : 'isolate') + '  I') + '"><span class="long">' + t(isolated ? 'show_all' : 'isolate') + '</span><span class="short">' + iconSvg('scan') + '</span></button>'
     };
     document.querySelectorAll('[data-host]').forEach(function (el) { el.innerHTML = hosts[el.getAttribute('data-host')]; });
     var changed = differsFromShortcut();
     // one pattern for every trigger: [icon] [text] [caret]; the name of the control goes in the accessible label and in the tip
     var methodsLabel = changed ? t('custom') : t('sc_' + shortcut);
-    $('btn-methods').innerHTML = triggerIcon('layers', changed || shortcut !== 'all') + '<span class="rt">' + methodsLabel + '</span>' + CARET;
+    $('btn-methods').innerHTML = triggerIcon('layers', changed || shortcut !== 'basic') + '<span class="rt">' + methodsLabel + '</span>' + CARET;
     $('btn-methods').setAttribute('aria-label', t('a_methods', { v: methodsLabel })); $('btn-methods').title = t('a_methods', { v: methodsLabel });
     $('shortcuts').innerHTML = SHORTCUTS.map(function (a) {
       return '<button type="button" class="shortcut" role="menuitemradio" data-shortcut="' + a + '" aria-checked="' + (a === shortcut && !changed) + '"><b>' + t('sc_' + a) + '</b>' + (a === shortcut && changed ? '<span class="small">' + t('sc_last') + '</span>' : '') + '<span class="small">' + t('sc_' + a + '_d') + '</span></button>';
@@ -1774,14 +1906,15 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var b;
     if ((b = ev.target.closest('button[data-shortcut]'))) { applyShortcut(b.getAttribute('data-shortcut')); recalculate(); closeMenu(); renderAll(true); if (pinned && !isolated) highlightOnly(); return; }
     if ((b = ev.target.closest('button[data-language]'))) { closeMenu(); switchLanguage(b.getAttribute('data-language')); return; }
-    if ((b = ev.target.closest('button[data-v]'))) { dir = b.getAttribute('data-v'); if (isolated) renderAll(true); else { highlightOnly(); saveState(); } return; }
-    if ((b = ev.target.closest('button[data-d]'))) { steps = Number(b.getAttribute('data-d')); if (isolated) renderAll(true); else { highlightOnly(); saveState(); } return; }
+    var refocus = function (sel) { var el = sheet.querySelector(sel); if (el && el.disabled) el = sheet.querySelector('[data-step]:not([disabled])'); if (el) el.focus(); };
+    if ((b = ev.target.closest('button[data-v]'))) { setDirection(b.getAttribute('data-v')); refocus('[data-v="' + dir + '"]'); return; }
+    if ((b = ev.target.closest('button[data-step]'))) { var act = b.getAttribute('data-step'); setReach(act); refocus('[data-step="' + act + '"]'); return; }
     if ((b = ev.target.closest('button[data-base-op]'))) { base = b.getAttribute('data-base-op'); applyTheme(); renderControls(); saveState(); return; }
     if ((b = ev.target.closest('button[data-accent-op]'))) { accent = b.getAttribute('data-accent-op'); applyTheme(); renderControls(); saveState(); return; }
     if ((b = ev.target.closest('button[data-mode]'))) { mode = b.getAttribute('data-mode'); applyTheme(); renderControls(); saveState(); return; }
     if (ev.target.closest('[data-restore]')) { hiddenCategories = new Set(DATA.hiddenCategories); showGeneral = false; excluded = new Set(); recalculate(); renderAll(true); if (pinned && !isolated) highlightOnly(); openMenu('menu-filters'); return; }
     if ((b = ev.target.closest('button[data-era]'))) { closeMenu(); setEra(b.getAttribute('data-era')); return; }
-    if (ev.target.closest('[data-iso]')) { isolated = !isolated; renderAll(true); if (!isolated) highlightOnly(); return; }
+    if (ev.target.closest('[data-iso]')) { toggleIsolated(); refocus('[data-iso]'); return; }
     if ((b = ev.target.closest('button[data-action]'))) {
       var bld = BUILDINGS[b.getAttribute('data-b')], action = b.getAttribute('data-action'), groupAttr = b.getAttribute('data-g');
       // same rule as the global shortcuts: "all" ticks everything; "basic" and "late game" tick one method per group
@@ -1926,6 +2059,20 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     else if (ev.key === '0') fit();
     else if (ev.key === '+' || ev.key === '=') zoomAtCenter(1.3);
     else if (ev.key === '-' || ev.key === '−') zoomAtCenter(1 / 1.3);
+    else if (pinned && !menuIsOpen()) {
+      // chain of the pinned node: reach with brackets (or comma and period, kinder to some keyboards), direction and isolate with letters
+      var k = ev.key.length === 1 ? ev.key.toLowerCase() : ev.key;
+      if (k === '}' || k === '>' || (ev.shiftKey && (k === ']' || k === '.'))) setReach('max');
+      else if (k === '{' || k === '<' || (ev.shiftKey && (k === '[' || k === ','))) setReach('one');
+      else if (k === ']' || k === '.') setReach('further');
+      else if (k === '[' || k === ',') setReach('closer');
+      else if (k === 'u') setDirection('upstream');
+      else if (k === 'b') setDirection('both');
+      else if (k === 'd') setDirection('downstream');
+      else if (k === 'i') toggleIsolated();
+      else return;
+      ev.preventDefault();
+    }
   });
 
   // The map area changes size (window resized, phone rotated, the chain strip appearing). While the camera was not
