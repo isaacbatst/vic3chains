@@ -11,8 +11,10 @@
   --background: #ffffff; --foreground: #0a0a0a; --card: #ffffff; --popover: #ffffff; --secondary: #f5f5f5; --muted: #f5f5f5; --muted-foreground: #707070; --accent: #f5f5f5;
     --border: #e5e5e5; --input: #e5e5e5; --canvas: #fafafa; --canvas-dot: #d4d4d4; --link: #d4d4d4;
     --b-primary: #171717; --b-pf: #fafafa; --b-ring: #a3a3a3; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #2563eb; --out: #ea580c; --in-t: #2563eb; --out-t: #c2490a;
+    --in: #2563eb; --out: #ea580c; --b-in-on: #60a5fa; --b-out-on: #fb923c; --in-t: #2563eb; --out-t: #c2490a;
   --am-neutral: #737373; --am-stone: #78716c; --am-zinc: #71717a; --am-slate: #64748b; --am-violet: #7c3aed; --am-emerald: #047857; --am-rose: #e11d48; --am-amber: #d97706;
+  --tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+  --in-on: var(--a-in-on, var(--b-in-on)); --out-on: var(--a-out-on, var(--b-out-on));
   --primary: var(--a-primary, var(--b-primary)); --primary-foreground: var(--a-pf, var(--b-pf)); --ring: var(--a-ring, var(--b-ring)); --check: var(--a-check, var(--b-check)); --primary-text: var(--a-pt, var(--b-primary));
   --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.10), 0 2px 4px -2px rgb(0 0 0 / 0.10);
   --body: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -23,7 +25,7 @@
     --background: #0a0a0a; --foreground: #fafafa; --card: #171717; --popover: #171717; --secondary: #262626; --muted: #262626; --muted-foreground: #a3a3a3; --accent: #262626;
     --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #0a0a0a; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #404040;
     --b-primary: #e5e5e5; --b-pf: #171717; --b-ring: #737373; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23171717' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --in: #60a5fa; --out: #fb923c; --b-in-on: #2563eb; --b-out-on: #c2410c; --in-t: #60a5fa; --out-t: #fb923c;
     --am-neutral: #a3a3a3; --am-stone: #a8a29e; --am-zinc: #a1a1aa; --am-slate: #94a3b8; --am-violet: #a78bfa; --am-emerald: #10b981; --am-rose: #fb7185; --am-amber: #f59e0b;
     color-scheme: dark;
   }
@@ -32,7 +34,7 @@
   --background: #0a0a0a; --foreground: #fafafa; --card: #171717; --popover: #171717; --secondary: #262626; --muted: #262626; --muted-foreground: #a3a3a3; --accent: #262626;
     --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #0a0a0a; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #404040;
     --b-primary: #e5e5e5; --b-pf: #171717; --b-ring: #737373; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23171717' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --in: #60a5fa; --out: #fb923c; --b-in-on: #2563eb; --b-out-on: #c2410c; --in-t: #60a5fa; --out-t: #fb923c;
   --am-neutral: #a3a3a3; --am-stone: #a8a29e; --am-zinc: #a1a1aa; --am-slate: #94a3b8; --am-violet: #a78bfa; --am-emerald: #10b981; --am-rose: #fb7185; --am-amber: #f59e0b;
   color-scheme: dark;
 }
@@ -40,74 +42,74 @@
   --background: #ffffff; --foreground: #0c0a09; --card: #ffffff; --popover: #ffffff; --secondary: #f5f5f4; --muted: #f5f5f4; --muted-foreground: #766f6a; --accent: #f5f5f4;
     --border: #e7e5e4; --input: #e7e5e4; --canvas: #fafaf9; --canvas-dot: #d6d3d1; --link: #d6d3d1;
     --b-primary: #1c1917; --b-pf: #fafaf9; --b-ring: #a8a29e; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23fafaf9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #2563eb; --out: #ea580c; --in-t: #2563eb; --out-t: #c2490a;
+    --in: #2563eb; --out: #ea580c; --b-in-on: #60a5fa; --b-out-on: #fb923c; --in-t: #2563eb; --out-t: #c2490a;
 }
 @media (prefers-color-scheme: dark) {
   :root[data-base="stone"]:not([data-theme="light"]) {
     --background: #0c0a09; --foreground: #fafaf9; --card: #1c1917; --popover: #1c1917; --secondary: #292524; --muted: #292524; --muted-foreground: #a8a29e; --accent: #292524;
     --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #0c0a09; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #44403c;
     --b-primary: #e7e5e4; --b-pf: #1c1917; --b-ring: #78716c; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%231c1917' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --in: #60a5fa; --out: #fb923c; --b-in-on: #2563eb; --b-out-on: #c2410c; --in-t: #60a5fa; --out-t: #fb923c;
   }
 }
 :root[data-base="stone"][data-theme="dark"] {
   --background: #0c0a09; --foreground: #fafaf9; --card: #1c1917; --popover: #1c1917; --secondary: #292524; --muted: #292524; --muted-foreground: #a8a29e; --accent: #292524;
     --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #0c0a09; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #44403c;
     --b-primary: #e7e5e4; --b-pf: #1c1917; --b-ring: #78716c; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%231c1917' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --in: #60a5fa; --out: #fb923c; --b-in-on: #2563eb; --b-out-on: #c2410c; --in-t: #60a5fa; --out-t: #fb923c;
 }
 :root[data-base="zinc"] {
   --background: #ffffff; --foreground: #09090b; --card: #ffffff; --popover: #ffffff; --secondary: #f4f4f5; --muted: #f4f4f5; --muted-foreground: #6f6f78; --accent: #f4f4f5;
     --border: #e4e4e7; --input: #e4e4e7; --canvas: #fafafa; --canvas-dot: #d4d4d8; --link: #d4d4d8;
     --b-primary: #18181b; --b-pf: #fafafa; --b-ring: #a1a1aa; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23fafafa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #2563eb; --out: #ea580c; --in-t: #2563eb; --out-t: #c0480a;
+    --in: #2563eb; --out: #ea580c; --b-in-on: #60a5fa; --b-out-on: #fb923c; --in-t: #2563eb; --out-t: #c0480a;
 }
 @media (prefers-color-scheme: dark) {
   :root[data-base="zinc"]:not([data-theme="light"]) {
     --background: #09090b; --foreground: #fafafa; --card: #18181b; --popover: #18181b; --secondary: #27272a; --muted: #27272a; --muted-foreground: #a1a1aa; --accent: #27272a;
     --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #09090b; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #3f3f46;
     --b-primary: #e4e4e7; --b-pf: #18181b; --b-ring: #71717a; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%2318181b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --in: #60a5fa; --out: #fb923c; --b-in-on: #2563eb; --b-out-on: #c2410c; --in-t: #60a5fa; --out-t: #fb923c;
   }
 }
 :root[data-base="zinc"][data-theme="dark"] {
   --background: #09090b; --foreground: #fafafa; --card: #18181b; --popover: #18181b; --secondary: #27272a; --muted: #27272a; --muted-foreground: #a1a1aa; --accent: #27272a;
     --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #09090b; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #3f3f46;
     --b-primary: #e4e4e7; --b-pf: #18181b; --b-ring: #71717a; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%2318181b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --in: #60a5fa; --out: #fb923c; --b-in-on: #2563eb; --b-out-on: #c2410c; --in-t: #60a5fa; --out-t: #fb923c;
 }
 :root[data-base="slate"] {
   --background: #ffffff; --foreground: #020617; --card: #ffffff; --popover: #ffffff; --secondary: #f1f5f9; --muted: #f1f5f9; --muted-foreground: #617187; --accent: #f1f5f9;
     --border: #e2e8f0; --input: #e2e8f0; --canvas: #f8fafc; --canvas-dot: #cbd5e1; --link: #cbd5e1;
     --b-primary: #0f172a; --b-pf: #f8fafc; --b-ring: #94a3b8; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23f8fafc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #2563eb; --out: #ea580c; --in-t: #2563eb; --out-t: #c2490a;
+    --in: #2563eb; --out: #ea580c; --b-in-on: #60a5fa; --b-out-on: #fb923c; --in-t: #2563eb; --out-t: #c2490a;
 }
 @media (prefers-color-scheme: dark) {
   :root[data-base="slate"]:not([data-theme="light"]) {
     --background: #020617; --foreground: #f8fafc; --card: #0f172a; --popover: #0f172a; --secondary: #1e293b; --muted: #1e293b; --muted-foreground: #94a3b8; --accent: #1e293b;
     --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #020617; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #334155;
     --b-primary: #e2e8f0; --b-pf: #0f172a; --b-ring: #64748b; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --in: #60a5fa; --out: #fb923c; --b-in-on: #2563eb; --b-out-on: #c2410c; --in-t: #60a5fa; --out-t: #fb923c;
   }
 }
 :root[data-base="slate"][data-theme="dark"] {
   --background: #020617; --foreground: #f8fafc; --card: #0f172a; --popover: #0f172a; --secondary: #1e293b; --muted: #1e293b; --muted-foreground: #94a3b8; --accent: #1e293b;
     --border: rgba(255, 255, 255, 0.10); --input: rgba(255, 255, 255, 0.15); --canvas: #020617; --canvas-dot: rgba(255, 255, 255, 0.08); --link: #334155;
     --b-primary: #e2e8f0; --b-pf: #0f172a; --b-ring: #64748b; --b-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%230f172a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-    --in: #60a5fa; --out: #fb923c; --in-t: #60a5fa; --out-t: #fb923c;
+    --in: #60a5fa; --out: #fb923c; --b-in-on: #2563eb; --b-out-on: #c2410c; --in-t: #60a5fa; --out-t: #fb923c;
 }
-:root[data-accent="violet"] { --a-primary: #7c3aed; --a-pt: #7c3aed; --a-pf: #ffffff; --a-ring: #7c3aed; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-@media (prefers-color-scheme: dark) { :root[data-accent="violet"]:not([data-theme="light"]) { --a-primary: #a78bfa; --a-pt: #a78bfa; --a-pf: #2e1065; --a-ring: #a78bfa; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%232e1065' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
-:root[data-accent="violet"][data-theme="dark"] { --a-primary: #a78bfa; --a-pt: #a78bfa; --a-pf: #2e1065; --a-ring: #a78bfa; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%232e1065' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-:root[data-accent="emerald"] { --a-primary: #047857; --a-pt: #047857; --a-pf: #ffffff; --a-ring: #047857; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-@media (prefers-color-scheme: dark) { :root[data-accent="emerald"]:not([data-theme="light"]) { --a-primary: #10b981; --a-pt: #10b981; --a-pf: #022c22; --a-ring: #10b981; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23022c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
-:root[data-accent="emerald"][data-theme="dark"] { --a-primary: #10b981; --a-pt: #10b981; --a-pf: #022c22; --a-ring: #10b981; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23022c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-:root[data-accent="rose"] { --a-primary: #e11d48; --a-pt: #da1c46; --a-pf: #ffffff; --a-ring: #e11d48; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-@media (prefers-color-scheme: dark) { :root[data-accent="rose"]:not([data-theme="light"]) { --a-primary: #fb7185; --a-pt: #fb7185; --a-pf: #4c0519; --a-ring: #fb7185; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%234c0519' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
-:root[data-accent="rose"][data-theme="dark"] { --a-primary: #fb7185; --a-pt: #fb7185; --a-pf: #4c0519; --a-ring: #fb7185; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%234c0519' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-:root[data-accent="amber"] { --a-primary: #d97706; --a-pt: #a75c05; --a-pf: #451a03; --a-ring: #d97706; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
-@media (prefers-color-scheme: dark) { :root[data-accent="amber"]:not([data-theme="light"]) { --a-primary: #f59e0b; --a-pt: #f59e0b; --a-pf: #451a03; --a-ring: #f59e0b; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
-:root[data-accent="amber"][data-theme="dark"] { --a-primary: #f59e0b; --a-pt: #f59e0b; --a-pf: #451a03; --a-ring: #f59e0b; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+:root[data-accent="violet"] { --a-primary: #7c3aed; --a-in-on: #bfdbfe; --a-out-on: #fed7aa; --a-pt: #7c3aed; --a-pf: #ffffff; --a-ring: #7c3aed; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root[data-accent="violet"]:not([data-theme="light"]) { --a-primary: #a78bfa; --a-in-on: #1e3a8a; --a-out-on: #7c2d12; --a-pt: #a78bfa; --a-pf: #2e1065; --a-ring: #a78bfa; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%232e1065' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
+:root[data-accent="violet"][data-theme="dark"] { --a-primary: #a78bfa; --a-in-on: #1e3a8a; --a-out-on: #7c2d12; --a-pt: #a78bfa; --a-pf: #2e1065; --a-ring: #a78bfa; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%232e1065' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+:root[data-accent="emerald"] { --a-primary: #047857; --a-in-on: #bfdbfe; --a-out-on: #fed7aa; --a-pt: #047857; --a-pf: #ffffff; --a-ring: #047857; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root[data-accent="emerald"]:not([data-theme="light"]) { --a-primary: #10b981; --a-in-on: #1e3a8a; --a-out-on: #7c2d12; --a-pt: #10b981; --a-pf: #022c22; --a-ring: #10b981; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23022c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
+:root[data-accent="emerald"][data-theme="dark"] { --a-primary: #10b981; --a-in-on: #1e3a8a; --a-out-on: #7c2d12; --a-pt: #10b981; --a-pf: #022c22; --a-ring: #10b981; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23022c22' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+:root[data-accent="rose"] { --a-primary: #e11d48; --a-in-on: #bfdbfe; --a-out-on: #fed7aa; --a-pt: #da1c46; --a-pf: #ffffff; --a-ring: #e11d48; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root[data-accent="rose"]:not([data-theme="light"]) { --a-primary: #fb7185; --a-in-on: #1e3a8a; --a-out-on: #7c2d12; --a-pt: #fb7185; --a-pf: #4c0519; --a-ring: #fb7185; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%234c0519' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
+:root[data-accent="rose"][data-theme="dark"] { --a-primary: #fb7185; --a-in-on: #1e3a8a; --a-out-on: #7c2d12; --a-pt: #fb7185; --a-pf: #4c0519; --a-ring: #fb7185; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%234c0519' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+:root[data-accent="amber"] { --a-primary: #d97706; --a-in-on: #1e3a8a; --a-out-on: #6c2710; --a-pt: #a75c05; --a-pf: #451a03; --a-ring: #d97706; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
+@media (prefers-color-scheme: dark) { :root[data-accent="amber"]:not([data-theme="light"]) { --a-primary: #f59e0b; --a-in-on: #1e3a8a; --a-out-on: #7c2d12; --a-pt: #f59e0b; --a-pf: #451a03; --a-ring: #f59e0b; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); } }
+:root[data-accent="amber"][data-theme="dark"] { --a-primary: #f59e0b; --a-in-on: #1e3a8a; --a-out-on: #7c2d12; --a-pt: #f59e0b; --a-pf: #451a03; --a-ring: #f59e0b; --a-check: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'%3E%3Cpath d='M2.2 6.4l2.6 2.6 5-5.6' fill='none' stroke='%23451a03' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); }
 *, *::before, *::after { box-sizing: border-box; }
 html, body { height: 100%; }
 body { background: var(--canvas); color: var(--foreground); font-family: var(--body); font-size: 14px; line-height: 1.4; overflow: hidden; }
@@ -187,7 +189,19 @@ img.ic { display: inline-block; flex: none; width: 20px; height: 20px; object-fi
 .cbar { display: flex; flex: none; align-items: center; gap: 8px; margin-right: 6px; padding-right: 12px; border-right: 1px solid var(--border); }
 .cbar .seg button { height: 22px; padding: 0 8px; display: inline-flex; align-items: center; }
 .cbar .btn { height: 28px; display: inline-flex; align-items: center; gap: 6px; }
+.cbar .long { display: inline-flex; align-items: center; gap: 5px; }
 .cbar .short { display: none; }
+/* direction cue: the arrow takes the color of what goes in (upstream) or comes out (downstream); the label keeps the color of the control.
+   On the active segment the fill is primary, so the arrow uses the shade of the same hue that holds 3:1 on it */
+.cbar .ico.d-in, .cbar .ico .s-in { stroke: var(--in-t); }
+.cbar .ico.d-out, .cbar .ico .s-out { stroke: var(--out-t); }
+.cbar [aria-pressed="true"] .ico.d-in, .cbar [aria-pressed="true"] .ico .s-in { stroke: var(--in-on); }
+.cbar [aria-pressed="true"] .ico.d-out, .cbar [aria-pressed="true"] .ico .s-out { stroke: var(--out-on); }
+.cbar .seg .ico { stroke-width: 2; }
+/* small swatch that repeats the cue next to a heading */
+.dk { display: inline-block; flex: none; width: 8px; height: 8px; border-radius: 2px; margin-right: 6px; }
+.dk.in { background: var(--in); }
+.dk.out { background: var(--out); }
 .cbar .ico { width: 15px; height: 15px; }
 @media (max-width: 1499px) { .cbar .long { display: none; } .cbar .short { display: inline-flex; } }
 @media (max-width: 1249px) { .sh-head .ttl > .tec { display: none; } }
@@ -216,8 +230,9 @@ kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border)
 /* a list of choices: the selected one carries a check mark in primary */
 .shortcuts, .ops { display: flex; flex-direction: column; gap: 2px; }
 .shortcut, .op { text-align: left; background: none; border: 0; border-radius: 6px; padding: 8px; display: grid; grid-template-columns: 16px minmax(0, 1fr); column-gap: 8px; align-items: start; font-weight: 400; }
-.shortcut::before, .op::before { content: "✓"; color: transparent; font-weight: 600; }
-.shortcut[aria-checked="true"]::before, .op[aria-checked="true"]::before { color: var(--primary); }
+.shortcut::before, .op::before { content: ""; width: 15px; height: 15px; margin-top: 2px; background: transparent; -webkit-mask: var(--tick) center / contain no-repeat; mask: var(--tick) center / contain no-repeat; }
+.shortcut[aria-checked="true"]::before, .op[aria-checked="true"]::before { background: var(--primary-text); }
+.op::before { margin-top: 0; }
 .pop.list { width: min(260px, calc(100% - 16px)); padding: 6px; gap: 4px; }
 .pop.list .small { padding: 4px 8px 6px; }
 .shortcut > *, .op > * { grid-column: 2; }
@@ -256,6 +271,11 @@ kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border)
 /* the ring is state: pinned node and keyboard focus */
 .n .ring { fill: none; stroke: var(--primary); stroke-width: 2; vector-effect: non-scaling-stroke; display: none; }
 .n.self .ring, .n:focus-visible .ring { display: block; }
+/* a pinned good becomes a block for as long as it is pinned: opaque plate behind icon and name, name in the weight of a building */
+.n .plate { fill: var(--card); stroke: var(--border); stroke-width: 1; vector-effect: non-scaling-stroke; display: none; }
+.n.g.self .plate { display: block; }
+.n.g.self text { font-weight: 600; stroke: var(--card); }
+.n.g.self .disc { fill: var(--muted); }
 .e { fill: none; stroke: var(--link); stroke-width: 1; vector-effect: non-scaling-stroke; transition: opacity 0.12s; }
 .e.fut { stroke-dasharray: 6 5; }
 .e.up { stroke: var(--in); }
@@ -282,11 +302,14 @@ kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border)
 
 .float { position: absolute; z-index: 3; bottom: calc(var(--sh) + 12px); }
 .zoom { right: 12px; display: inline-flex; border: 1px solid var(--border); border-radius: 8px; background: var(--background); box-shadow: var(--shadow); overflow: hidden; }
-.zoom button { background: none; border: 0; border-left: 1px solid var(--border); height: 32px; padding: 0 11px; color: var(--foreground); }
+.zoom button { display: inline-flex; align-items: center; background: none; border: 0; border-left: 1px solid var(--border); height: 32px; padding: 0 11px; color: var(--foreground); }
 .zoom button:first-child { border-left: 0; }
 .zoom button:hover { background: var(--accent); }
 .legend { left: 12px; font-size: 12px; color: var(--muted-foreground); background: var(--popover); border: 1px solid var(--border); border-radius: 10px; box-shadow: var(--shadow); max-width: min(360px, calc(100% - 170px)); max-height: calc(100% - var(--sh) - 30px); overflow-y: auto; }
-.legend summary { cursor: pointer; padding: 7px 12px; color: var(--foreground); font-weight: 500; list-style-position: inside; border-radius: 10px; }
+.legend summary { cursor: pointer; padding: 7px 12px 7px 8px; color: var(--foreground); font-weight: 500; list-style: none; display: flex; align-items: center; gap: 4px; border-radius: 10px; }
+.legend summary::-webkit-details-marker { display: none; }
+.legend summary .ico { width: 15px; height: 15px; transition: transform 0.12s; }
+.legend[open] summary .ico { transform: rotate(90deg); }
 .legend summary:hover { background: var(--accent); }
 .legend .items { display: flex; flex-direction: column; gap: 5px; padding: 2px 12px 10px; }
 .legend .items > span { display: flex; align-items: center; gap: 8px; }
@@ -437,9 +460,9 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     <div class="tip" id="tip" hidden></div>
     <details class="legend float" id="legend-box"></details>
     <div class="zoom float" id="zoom">
-      <button type="button" id="zoom-out">−</button>
+      <button type="button" id="zoom-out"></button>
       <button type="button" id="zoom-fit"></button>
-      <button type="button" id="zoom-in">+</button>
+      <button type="button" id="zoom-in"></button>
     </div>
     <aside class="sheet" id="sheet" aria-live="polite"></aside>
   </div>
@@ -458,7 +481,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       title: 'Victoria 3 Production Graph', brand: 'Production graph',
       search_ph: 'Search ( / )', search_aria: 'Search a good or a building', search_none: 'No good or building with that name.', k_good: 'good',
       custom: 'Custom', a_methods: 'Production methods: {v}', a_era: 'Technology era: {v}', a_filters: ['Filters, {n} active', 'Filters, {n} active'], a_lang: 'Language: {v}', f_vis: '{a} of {b} categories visible', f_reset: 'Restore defaults', unpin: 'Release node', filters: 'Filters', help_aria: 'Help and rules', lang: 'Language',
-      chain: 'Highlighted chain', dir_back: 'Upstream', dir_both: 'Both', dir_fwd: 'Downstream', step1: '1 step', step_n: '{n} steps', step_all: 'Whole chain', theme: 'Theme', base: 'Base', accent_t: 'Accent', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'None', d_violet: 'Violet', d_emerald: 'Emerald', d_rose: 'Rose', d_amber: 'Amber', mode: 'Mode', mode_auto: 'Automatic', mode_light: 'Light', mode_dark: 'Dark',
+      chain: 'Highlighted chain', dir_back: 'Upstream', dir_both: 'Both', dir_fwd: 'Downstream', dir_back_tip: 'Upstream: what this is made of (blue)', dir_both_tip: 'Both: upstream in blue, downstream in orange', dir_fwd_tip: 'Downstream: where this goes (orange)', step1: '1 step', step_n: '{n} steps', step_all: 'Whole chain', theme: 'Theme', base: 'Base', accent_t: 'Accent', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'None', d_violet: 'Violet', d_emerald: 'Emerald', d_rose: 'Rose', d_amber: 'Amber', mode: 'Mode', mode_auto: 'Automatic', mode_light: 'Light', mode_dark: 'Dark',
       prefs: 'Preferences', isolate: 'Isolate chain', show_all: 'Show everything', help: 'Help', era_opt_all: 'All eras', era_opt: 'Up to era {e}', era_aria: 'My technologies go up to era',
       dir_aria: 'Direction of the chain', steps_aria: 'How far to follow the chain',
       sc_title: 'Tick methods in every building', sc_note: 'These are shortcuts, not modes: after using one, tick and untick freely in each building’s sheet.',
@@ -471,14 +494,14 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       help_intro: 'Victoria 3, version {v}. Raw materials on the left, final products on the right. Every amount is per building level, per week.',
       read_title: 'How to read it',
       read1: 'The graph shows the union of every ticked production method: every link that some of them makes possible.',
-      read2: 'A filled block is a building, and its color is the category; an icon with a label is a good. Blue amounts go into a building; orange ones come out.',
+      read2: 'A filled block is a building, and its color is the category; an icon with a label is a good. <i class="dk in"></i>Blue is what goes in, and the chain upstream; <i class="dk out"></i>orange is what comes out, and the chain downstream. The same two colors mark amounts, links, column headings and the direction controls.',
       read3: 'A building uses one method per group. With more than one ticked in the same group, the amount becomes a range: “40–100” is the minimum and the maximum among the ticked combinations; “up to 15” means it is zero in some combination.',
       read4: 'Solid link: possible with the technologies you have. Dashed: needs a future technology. A building you cannot build yet is faded. In the tables, a filled dot marks a technology you have and a faint one, a technology you lack. Pick your era on the top bar.',
       use_title: 'How to use it',
       use1: 'Mouse wheel or pinch zooms; drag to move. From 100% zoom on, every amount is shown.',
       use2: 'Hovering a node lights up its chain: one step each way by default.',
       use3: 'Clicking pins the highlight and opens the node’s sheet below. For a building, the sheet has one row per method group showing what is ticked in it; click a group to open its methods, each with a checkbox. Unticking redraws at once. Drag the top edge of the sheet to change its height.',
-      use4: 'With a node pinned, the controls on the right of the sheet header pick the direction and how far the chain goes (1, 2, 3 steps or the whole chain; the choice is remembered); “Isolate” hides the rest. Click the empty map or the ✕ to release the node.',
+      use4: 'With a node pinned, the controls on the right of the sheet header pick the direction and how far the chain goes (1, 2, 3 steps or the whole chain; the choice is remembered); “Isolate” hides the rest. Click the empty map or the close button to release the node.',
       keys_title: 'Shortcuts', k_search: 'search', k_esc: 'release the node', k_fit: 'fit', k_zoom: 'zoom',
       general_title: 'General inputs',
       general_text: 'What a building only consumes through a support group (a secondary group that does not change what it produces: automation, rail transport, harvesting machines, fences) stays off the drawing and off the highlighted chains. “Show general inputs”, in Filters, draws them all. The node’s sheet always shows the whole recipe.',
@@ -486,7 +509,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       fan: 'Fan-made tool, not affiliated with Paradox Interactive. Victoria 3 names and icons belong to Paradox Interactive.',
       privacy: 'No ads, no cookies. Anonymous visit counts only (Vercel Web Analytics).', data: 'Data read from game version {v}, generated on {d}.', repo: 'Source code',
       legend: 'Legend', lg_good: 'good', lg_bld: 'building: in from the left, out to the right; the fill is its category', lg_lock: 'building you cannot build yet',
-      lg_ln: 'link possible with your technologies', lg_fut: 'link that needs a future technology', lg_up: 'upstream: what this is made of', lg_dn: 'downstream: where this goes',
+      lg_ln: 'link possible with your technologies', lg_fut: 'link that needs a future technology', lg_up: 'upstream: what this is made of (blue)', lg_dn: 'downstream: where this goes (orange)',
       lg_have: 'technology you have', lg_miss: 'technology you lack',
       zoom: 'Zoom', zoom_out: 'Zoom out', zoom_in: 'Zoom in', fit: 'Fit', graph_aria: 'Production graph', node_b: 'Building {n}', node_g: 'Good {n}',
       hint: 'Hover a node to see its chain; click to pin it and choose methods.',
@@ -522,7 +545,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       title: 'Grafo de Produção do Victoria 3', brand: 'Grafo de produção',
       search_ph: 'Buscar ( / )', search_aria: 'Buscar mercadoria ou edifício', search_none: 'Nenhuma mercadoria ou edifício com esse nome.', k_good: 'mercadoria',
       custom: 'Personalizado', a_methods: 'Métodos de produção: {v}', a_era: 'Era das tecnologias: {v}', a_filters: ['Filtros, {n} ativo', 'Filtros, {n} ativos'], a_lang: 'Idioma: {v}', f_vis: '{a} de {b} categorias visíveis', f_reset: 'Restaurar padrão', unpin: 'Soltar nó', filters: 'Filtros', help_aria: 'Ajuda e regras', lang: 'Idioma',
-      chain: 'Cadeia realçada', dir_back: 'Para trás', dir_both: 'As duas', dir_fwd: 'Para a frente', step1: '1 passo', step_n: '{n} passos', step_all: 'Cadeia inteira', theme: 'Tema', base: 'Base', accent_t: 'Destaque', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'Nenhuma', d_violet: 'Violeta', d_emerald: 'Esmeralda', d_rose: 'Rosa', d_amber: 'Âmbar', mode: 'Modo', mode_auto: 'Automático', mode_light: 'Claro', mode_dark: 'Escuro',
+      chain: 'Cadeia realçada', dir_back: 'Para trás', dir_both: 'As duas', dir_fwd: 'Para a frente', dir_back_tip: 'Para trás: do que isto é feito (azul)', dir_both_tip: 'As duas: para trás em azul, para a frente em laranja', dir_fwd_tip: 'Para a frente: para onde isto vai (laranja)', step1: '1 passo', step_n: '{n} passos', step_all: 'Cadeia inteira', theme: 'Tema', base: 'Base', accent_t: 'Destaque', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'Nenhuma', d_violet: 'Violeta', d_emerald: 'Esmeralda', d_rose: 'Rosa', d_amber: 'Âmbar', mode: 'Modo', mode_auto: 'Automático', mode_light: 'Claro', mode_dark: 'Escuro',
       prefs: 'Preferências', isolate: 'Isolar cadeia', show_all: 'Mostrar tudo', help: 'Ajuda', era_opt_all: 'Todas as eras', era_opt: 'Até a era {e}', era_aria: 'Minhas tecnologias vão até a era',
       dir_aria: 'Direção da cadeia', steps_aria: 'Até onde seguir a cadeia',
       sc_title: 'Marcar métodos em todos os edifícios', sc_note: 'São atalhos, não modos: depois de usar um, marque e desmarque à vontade na folha de cada edifício.',
@@ -535,14 +558,14 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       help_intro: 'Victoria 3, versão {v}. Matéria-prima à esquerda, produto final à direita. Toda quantidade é por nível do edifício, por semana.',
       read_title: 'Como ler',
       read1: 'O grafo mostra a união de todos os métodos de produção marcados: toda ligação que algum deles torna possível.',
-      read2: 'Bloco cheio é edifício, e a cor é a categoria dele; ícone com rótulo é mercadoria. Quantidade em azul entra no edifício; em laranja, sai.',
+      read2: 'Bloco cheio é edifício, e a cor é a categoria dele; ícone com rótulo é mercadoria. <i class="dk in"></i>Azul é o que entra, e a cadeia para trás; <i class="dk out"></i>laranja é o que sai, e a cadeia para a frente. As mesmas duas cores marcam quantidades, ligações, títulos de coluna e os controles de direção.',
       read3: 'Cada edifício usa um método por grupo. Com mais de um marcado no mesmo grupo, a quantidade vira uma faixa: “40–100” é o mínimo e o máximo entre as combinações marcadas; “até 15” quer dizer que em alguma combinação é zero.',
       read4: 'Ligação cheia: dá para fazer com as tecnologias que você tem. Tracejada: depende de tecnologia futura. O edifício que você ainda não pode construir fica esmaecido. Nas tabelas, o ponto cheio marca tecnologia que você tem e o ponto apagado, a que falta. Escolha a sua era na barra do topo.',
       use_title: 'Como usar',
       use1: 'Roda do mouse ou pinça aproxima; arrastar move. A partir de 100% de zoom todas as quantidades aparecem.',
       use2: 'Passar o mouse num nó acende a cadeia dele: um passo para cada lado, por padrão.',
       use3: 'Clicar fixa o realce e abre a folha do nó embaixo. Num edifício, a folha traz uma linha por grupo de métodos com o que está marcado nele; clique num grupo para abrir os métodos, cada um com uma caixa de marcar. Desmarcar redesenha na hora. Arraste a borda de cima da folha para mudar a altura.',
-      use4: 'Com um nó fixado, os controles à direita do cabeçalho da folha escolhem a direção e até onde a cadeia vai (1, 2, 3 passos ou a cadeia inteira; a escolha fica guardada); “Isolar” esconde o resto. Clicar no vazio ou no ✕ solta o nó.',
+      use4: 'Com um nó fixado, os controles à direita do cabeçalho da folha escolhem a direção e até onde a cadeia vai (1, 2, 3 passos ou a cadeia inteira; a escolha fica guardada); “Isolar” esconde o resto. Clicar no vazio ou no botão de fechar solta o nó.',
       keys_title: 'Atalhos', k_search: 'buscar', k_esc: 'soltar o nó', k_fit: 'ajustar', k_zoom: 'zoom',
       general_title: 'Insumos gerais',
       general_text: 'O que um edifício só consome por um grupo de apoio (grupo secundário que não muda o que ele produz: automação, transporte ferroviário, máquinas de colheita, cercas) fica fora do desenho e das cadeias realçadas. “Mostrar insumos gerais”, em Filtros, desenha todos. A folha do nó sempre mostra a receita inteira.',
@@ -550,7 +573,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       fan: 'Ferramenta de fã, sem vínculo com a Paradox Interactive. Os nomes e ícones de Victoria 3 pertencem à Paradox Interactive.',
       privacy: 'Sem anúncios, sem cookies. Só contagem anônima de visitas (Vercel Web Analytics).', data: 'Dados lidos da versão {v} do jogo, gerados em {d}.', repo: 'Código-fonte',
       legend: 'Legenda', lg_good: 'mercadoria', lg_bld: 'edifício: entra pela esquerda, sai pela direita; a cor é a categoria', lg_lock: 'edifício que você ainda não pode construir',
-      lg_ln: 'ligação possível com as suas tecnologias', lg_fut: 'ligação que depende de tecnologia futura', lg_up: 'a montante: do que isto é feito', lg_dn: 'a jusante: para onde isto vai',
+      lg_ln: 'ligação possível com as suas tecnologias', lg_fut: 'ligação que depende de tecnologia futura', lg_up: 'para trás: do que isto é feito (azul)', lg_dn: 'para a frente: para onde isto vai (laranja)',
       lg_have: 'tecnologia que você tem', lg_miss: 'tecnologia que falta',
       zoom: 'Zoom', zoom_out: 'Afastar', zoom_in: 'Aproximar', fit: 'Ajustar', graph_aria: 'Grafo de produção', node_b: 'Edifício {n}', node_g: 'Mercadoria {n}',
       hint: 'Passe o mouse num nó para ver a cadeia dele; clique para fixar e escolher métodos.',
@@ -637,9 +660,12 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     globe: '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
     chev: '<path d="m6 9 6 6 6-6"/>',
     chevR: '<path d="m9 18 6-6-6-6"/>',
+    infinity: '<path d="M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8"/>',
+    minus: '<path d="M5 12h14"/>',
+    plus: '<path d="M5 12h14"/><path d="M12 5v14"/>',
     arrowL: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
     arrowR: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
-    arrowLR: '<path d="M8 3 4 7l4 4"/><path d="M4 7h16"/><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/>',
+    arrowLR: '<g class="s-in"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/></g><g class="s-out"><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></g>',
     scan: '<circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>',
     chevsDown: '<path d="m7 6 5 5 5-5"/><path d="m7 13 5 5 5-5"/>',
     chevsUp: '<path d="m17 11-5-5-5 5"/><path d="m17 18-5-5-5 5"/>',
@@ -1072,27 +1098,65 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     if (refit) fit(); else applyView();
     stage.dataset.w = Math.round(W); stage.dataset.h = Math.round(H);
   }
+  // A pinned good is drawn as a block: an opaque plate PLATE px around icon and name, so links stop at its border.
+  var PLATE = 7, paintedPin = null;
+  // geometry of one link at node scale s: the path, and where its amount sits (next to the building, which sets it).
+  // Next to the pinned node the amount keeps clear of the ring.
+  function edgeGeom(e, s) {
+    var nodes = layout.nodes, a = nodes[e.s], b = nodes[e.t], f1 = function (v) { return v.toFixed(1); };
+    var pa = e.s === pinned, pb = e.t === pinned, label = range(e.qMin, e.qMax);
+    var sx = a.cx + a.w * s / 2 + (a.b ? 0 : pa ? PLATE : 3 * s), sy = a.b ? a.cy + e.sourcePort * Math.max(a.textHeight * s, a.portsHeight) : a.cy;
+    var tx = b.cx - b.w * s / 2 - (!b.b && pb ? PLATE : 0), ty = b.b ? b.cy + e.targetPort * Math.max(b.textHeight * s, b.portsHeight) : b.cy;
+    var backward = b.l <= a.l;
+    var dx = backward ? 70 : Math.max(20, (tx - sx) * 0.5);
+    var d = 'M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + dx) + ',' + f1(sy) + ' ' + f1(tx - dx) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty);
+    if (backward && (pa || pb)) {
+      // a link that runs back would swing across the pinned block: it goes around it instead, over or under (whichever side
+      // the other end is on), with a turn next to the block
+      var p = pa ? a : b, half = Math.max(p.textHeight * s, p.portsHeight) / 2 + (p.b ? 0 : PLATE);
+      var left = p.cx - p.w * s / 2 - (p.b ? 0 : PLATE), right = p.cx + p.w * s / 2 + (p.b ? 0 : PLATE), far = right - left + 90;
+      var yw = p.cy + ((pa ? ty : sy) < p.cy - 1 ? -1 : 1) * (half + 18);
+      d = pa
+        ? 'M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + 46) + ',' + f1(sy) + ' ' + f1(sx + 46) + ',' + f1(yw) + ' ' + f1(sx) + ',' + f1(yw) + ' C' + f1(sx - far) + ',' + f1(yw) + ' ' + f1(tx - dx) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty)
+        : 'M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + dx) + ',' + f1(sy) + ' ' + f1(tx + far) + ',' + f1(yw) + ' ' + f1(tx) + ',' + f1(yw) + ' C' + f1(tx - 46) + ',' + f1(yw) + ' ' + f1(tx - 46) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty);
+    }
+    var qx = b.b ? tx - 9 * s - (pb ? 5 : 0) : sx + 5 * s + (pa ? 8 : 0), qy = (b.b ? ty : sy) - 4 * s;
+    // an amount that would run into the pinned good next door moves up, clear of its ring
+    if (!b.b && pb && !backward && qx + label.length * 0.62 * 11 * Math.min(s, 1.25) > tx - 9) qy = Math.min(qy, b.cy - Math.max(b.textHeight * s, b.portsHeight) / 2 - PLATE - 15);
+    return { d: d, qx: f1(qx), qy: f1(qy), anchor: b.b ? 'end' : 'start' };
+  }
+  // pinning or releasing a node only moves the links that touch it; the nodes stay where they are
+  function syncPinGeometry() {
+    if (paintedPin === pinned) return;
+    [paintedPin, pinned].forEach(function (id) {
+      if (!id || !layout.nodes[id]) return;
+      (layout.ix.inn[id] || []).concat(layout.ix.out[id] || []).forEach(function (e) {
+        var g = edgeGeom(e, nodeScale), sel = '[data-s="' + e.s + '"][data-t="' + e.t + '"]';
+        var p = vp.querySelector('path.e' + sel), q = vp.querySelector('text.q' + sel);
+        if (p) p.setAttribute('d', g.d);
+        if (q) { q.setAttribute('x', g.qx); q.setAttribute('y', g.qy); }
+      });
+    });
+    paintedPin = pinned;
+  }
   // paints the layout with nodes at scale s (1 = base size; grows as the camera moves away)
   function paint(s) {
     var nodes = layout.nodes, f1 = function (v) { return v.toFixed(1); };
     var edgeHtml = [], nodeHtml = [], qtyHtml = [];
     layout.visibleEdges.forEach(function (e) {
-      var a = nodes[e.s], b = nodes[e.t];
-      var sx = a.cx + a.w * s / 2 + (a.b ? 0 : 3 * s), sy = a.b ? a.cy + e.sourcePort * Math.max(a.textHeight * s, a.portsHeight) : a.cy;
-      var tx = b.cx - b.w * s / 2, ty = b.b ? b.cy + e.targetPort * Math.max(b.textHeight * s, b.portsHeight) : b.cy;
-      var backward = b.l <= a.l;
-      var dx = backward ? 70 : Math.max(20, (tx - sx) * 0.5);
-      edgeHtml.push('<path class="e' + (e.future ? ' fut' : '') + '" data-s="' + e.s + '" data-t="' + e.t + '" marker-end="url(#arr)" d="M' + f1(sx) + ',' + f1(sy) + ' C' + f1(sx + dx) + ',' + f1(sy) + ' ' + f1(tx - dx) + ',' + f1(ty) + ' ' + f1(tx - 1) + ',' + f1(ty) + '"/>');
-      // the number sits next to the building, which is what sets the amount
-      qtyHtml.push('<text class="q" data-s="' + e.s + '" data-t="' + e.t + '" '
-        + (b.b ? 'x="' + f1(tx - 9 * s) + '" y="' + f1(ty - 4 * s) + '" text-anchor="end"' : 'x="' + f1(sx + 5 * s) + '" y="' + f1(sy - 4 * s) + '" text-anchor="start"') + '>' + esc(range(e.qMin, e.qMax)) + '</text>');
+      var g = edgeGeom(e, s);
+      edgeHtml.push('<path class="e' + (e.future ? ' fut' : '') + '" data-s="' + e.s + '" data-t="' + e.t + '" marker-end="url(#arr)" d="' + g.d + '"/>');
+      qtyHtml.push('<text class="q" data-s="' + e.s + '" data-t="' + e.t + '" x="' + g.qx + '" y="' + g.qy + '" text-anchor="' + g.anchor + '">' + esc(range(e.qMin, e.qMax)) + '</text>');
     });
     layout.ids.forEach(function (id) {
       var n = nodes[id], cls = 'n ' + (n.b ? 'b' : 'g') + (n.locked ? ' lock' : '') + (n.off ? ' off' : '');
       var w = n.w * s, h = Math.max(n.textHeight * s, n.portsHeight), y0 = n.cy - (n.lines.length - 1) * 7.5 * s + 4.4 * s;
       var x0 = n.cx - w / 2, iconSize = n.iconSize * s, body;
-      // the ring only shows on the pinned node and on keyboard focus; it sits 2 px away from the node
-      var ring = '<rect class="ring" x="' + f1(x0 - 4) + '" y="' + f1(n.cy - h / 2 - 4) + '" width="' + f1(w + 8) + '" height="' + f1(h + 8) + '" rx="' + f1(6 * s + 3) + '"/>';
+      // the ring only shows on the pinned node and on keyboard focus; it sits 2 px away from the block. A good has no block of
+      // its own, so the ring goes around its plate (drawn only while pinned), a rectangle with the corner of a building
+      var m = n.b ? 0 : PLATE;
+      var ring = '<rect class="ring" x="' + f1(x0 - m - 3) + '" y="' + f1(n.cy - h / 2 - m - 3) + '" width="' + f1(w + 2 * m + 6) + '" height="' + f1(h + 2 * m + 6) + '" rx="' + f1((n.b ? 6 * s : 6) + 3) + '"/>'
+        + (n.b ? '' : '<rect class="plate" x="' + f1(x0 - m) + '" y="' + f1(n.cy - h / 2 - m) + '" width="' + f1(w + 2 * m) + '" height="' + f1(h + 2 * m) + '" rx="6"/>');
       if (n.b) {
         // building: a block filled with the category color, icon on the fill, name in white
         var iconX = x0 + 9 * s, textX = iconX + (n.iconSize ? iconSize + 5 * s : 0) + n.labelWidth * s / 2;
@@ -1113,6 +1177,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     vp.innerHTML = '<rect class="grid" x="-30000" y="-30000" width="60000" height="60000"/>' + edgeHtml.join('') + nodeHtml.join('') + qtyHtml.join('');
     svg.style.setProperty('--nf', (12.5 * s).toFixed(2) + 'px');
     svg.style.setProperty('--qf', (11 * Math.min(s, 1.25)).toFixed(2) + 'px');
+    paintedPin = pinned;
     paintHighlight();
   }
 
@@ -1256,6 +1321,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   }
   function paintHighlight() {
     var CLEAR_CLASSES = ['hv', 'up', 'dn', 'w1', 'w2', 'w3', 'chain-up', 'chain-down', 'self', 'hover-only'];
+    syncPinGeometry();
     vp.querySelectorAll('.hv').forEach(function (e) { CLEAR_CLASSES.forEach(function (c) { e.classList.remove(c); }); if (e.classList.contains('e')) e.setAttribute('marker-end', 'url(#arr)'); });
     var id = pinned || hovered;
     lastChain = null;
@@ -1374,7 +1440,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var r = recipes[b.id], val = 0, h = [];
     r.outs.forEach(function (x) { val += x[2] * GOODS[x[0]].price; });
     r.ins.forEach(function (x) { val -= x[2] * GOODS[x[0]].price; });
-    h.push('<div class="th c-mk"></div><div class="th c-nm"><span>' + t('tb_method') + '</span>' + rowActions(b.id, null) + '</div><div class="th c-in">' + t('tb_in') + '</div><div class="th c-ar"></div><div class="th c-out">' + t('tb_out') + '<span class="sm">' + t('per') + '</span></div>');
+    h.push('<div class="th c-mk"></div><div class="th c-nm"><span>' + t('tb_method') + '</span>' + rowActions(b.id, null) + '</div><div class="th c-in"><span><i class="dk in"></i>' + t('tb_in') + '</span></div><div class="th c-ar"></div><div class="th c-out"><span><i class="dk out"></i>' + t('tb_out') + '</span><span class="sm">' + t('per') + '</span></div>');
     var extra = r.n > 1 ? '<button type="button" class="lk" data-tip="' + esc(t('combos_tip', { n: r.n })) + '">' + t('combos', { n: r.n }) + '</button>'
       : r.n === 1 && (r.ins.length || r.outs.length) ? '<span class="small" tabindex="0" data-tip="' + esc(t('balance_tip')) + '">' + t('balance') + ' <span class="bal">£' + fmt(val) + '</span></span>' : '';
     h.push('<div class="tr tot">' + cell('c-mk', '') + cell('c-nm', '<span class="tn">' + t('total') + '</span>' + extra)
@@ -1452,7 +1518,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       else if (b.groups.some(function (grp) { return grp.methods.some(function (m) { return m.outputs[g.id] > 0; }); })) couldProduce.push(b);
       q = r.ins.find(function (x) { return x[0] === g.id; }); if (q) consumers.push([b, q]);
     });
-    h.push('<div class="th c-mk"></div><div class="th c-nm">' + t('tb_building') + '</div><div class="th c-in">' + t('tb_consumes') + '</div><div class="th c-ar"></div><div class="th c-out">' + t('tb_produces') + '<span class="sm">' + t('per') + '</span></div>');
+    h.push('<div class="th c-mk"></div><div class="th c-nm">' + t('tb_building') + '</div><div class="th c-in"><span><i class="dk in"></i>' + t('tb_consumes') + '</span></div><div class="th c-ar"></div><div class="th c-out"><span><i class="dk out"></i>' + t('tb_produces') + '</span><span class="sm">' + t('per') + '</span></div>');
     var lines = function (drag, side) {
       drag.forEach(function (x) {
         var b = x[0], q = x[1], off = hiddenCategories.has(b.category) || excluded.has(b.id);
@@ -1463,10 +1529,10 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
           + cell('c-in', side === 'in' ? num : '') + cell('c-ar', '') + cell('c-out', side === 'out' ? num : '') + '</div>');
       });
     };
-    h.push('<div class="gh"><span class="gn">' + t('who_prod') + '</span><span class="small">' + t('n_bld', { n: producers.length }) + '</span></div>');
+    h.push('<div class="gh"><span class="gn"><i class="dk out"></i>' + t('who_prod') + '</span><span class="small">' + t('n_bld', { n: producers.length }) + '</span></div>');
     if (producers.length) lines(producers, 'out'); else h.push('<div class="full small">' + t('none_prod') + '</div>');
     if (couldProduce.length) h.push('<div class="full small">' + t('unticked') + couldProduce.map(function (b) { return '<button type="button" class="link" data-go="b:' + b.id + '">' + esc(termName(b.id)) + '</button>'; }).join(', ') + '</div>');
-    h.push('<div class="gh"><span class="gn">' + t('who_cons') + '</span><span class="small">' + t('n_bld', { n: consumers.length }) + '</span></div>');
+    h.push('<div class="gh"><span class="gn"><i class="dk in"></i>' + t('who_cons') + '</span><span class="small">' + t('n_bld', { n: consumers.length }) + '</span></div>');
     if (consumers.length) lines(consumers, 'in'); else h.push('<div class="full small">' + t('none_cons') + '</div>');
     return '<div class="tb for-good">' + h.join('') + '</div>';
   }
@@ -1541,7 +1607,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     $('search-input').placeholder = t('search_ph'); $('search-input').setAttribute('aria-label', t('search_aria'));
     $('chip').setAttribute('aria-label', t('unpin')); $('btn-help').setAttribute('aria-label', t('help_aria'));
     svg.setAttribute('aria-label', t('graph_aria'));
-    $('zoom').setAttribute('aria-label', t('zoom')); $('zoom-out').setAttribute('aria-label', t('zoom_out')); $('zoom-in').setAttribute('aria-label', t('zoom_in')); $('zoom-fit').textContent = t('fit');
+    $('zoom').setAttribute('aria-label', t('zoom')); $('zoom-out').setAttribute('aria-label', t('zoom_out')); $('zoom-in').setAttribute('aria-label', t('zoom_in')); $('zoom-fit').textContent = t('fit'); $('zoom-out').innerHTML = iconSvg('minus'); $('zoom-in').innerHTML = iconSvg('plus');
     $('btn-help').innerHTML = triggerIcon('help') + '<span class="rt">' + t('help') + '</span>'; $('btn-help').title = t('help_aria');
     $('btn-theme').innerHTML = triggerIcon('palette') + '<span class="rt">' + t('theme') + '</span>' + CARET; $('btn-theme').setAttribute('aria-label', t('theme')); $('btn-theme').title = t('theme');
     $('menu-theme').innerHTML = '<div class="themes" data-host="theme"></div><div class="sec only-narrow"><h3>' + t('lang') + '</h3><div data-host="languages"></div></div>';
@@ -1557,7 +1623,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       + '<div class="sec"><h3>' + t('general_title') + '</h3><p class="small">' + t('general_text') + '</p></div>'
       + '<p class="small">' + t('help_foot') + '</p>'
       + '<p class="small foot">' + (DATA.analytics ? t('privacy') + ' ' : '') + t('fan') + ' ' + t('data', { v: esc(DATA.gameVersion), d: esc(DATA.generatedOn) }) + ' <a href="' + esc(DATA.repo) + '" target="_blank" rel="noopener">' + t('repo') + '</a></p>';
-    $('legend-box').innerHTML = '<summary>' + t('legend') + '</summary><div class="items">'
+    $('legend-box').innerHTML = '<summary>' + iconSvg('chevR') + t('legend') + '</summary><div class="items">'
       + '<span><i class="lg good"></i>' + t('lg_good') + '</span><span><i class="lg bld"></i>' + t('lg_bld') + '</span><span><i class="lg lock"></i>' + t('lg_lock') + '</span>'
       + ['ln', 'fut', 'up', 'dn'].map(function (k) { return '<span><svg class="lgl ' + k + '" width="24" height="6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3"/></svg>' + t('lg_' + k) + '</span>'; }).join('')
       + '<span><i class="pt on"></i>' + t('lg_have') + '<i class="pt" style="margin-left:10px"></i>' + t('lg_miss') + '</span></div><div class="categories" id="legend-categories"></div>';
@@ -1574,16 +1640,16 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var eras = [[0, t('era_opt_all')], [1, t('era_opt', { e: 'I' })], [2, t('era_opt', { e: 'II' })], [3, t('era_opt', { e: 'III' })], [4, t('era_opt', { e: 'IV' })], [5, t('era_opt', { e: 'V' })]].concat(SAVE ? [['save', t('era_save', { y: DATA.save.label })]] : []);
     var eraLabel = eras.filter(function (x) { return x[0] === era; })[0][1];
     var languageLabel = DATA.languages.filter(function (l) { return l[0] === language; })[0][1];
-    // x = [value, accessible name and tip, short form (icon or digit), long label]
-    var dualButton = function (attr, current) { return function (x) { return '<button type="button" data-' + attr + '="' + x[0] + '" aria-pressed="' + (current === x[0]) + '" aria-label="' + esc(x[1]) + '" data-tip="' + esc(x[1]) + '"><span class="long">' + esc(x[3]) + '</span><span class="short">' + x[2] + '</span></button>'; }; };
+    // x = [value, accessible name and tip, short form (icon or digit), long label (html)]
+    var dualButton = function (attr, current) { return function (x) { return '<button type="button" data-' + attr + '="' + x[0] + '" aria-pressed="' + (current === x[0]) + '" aria-label="' + esc(x[1]) + '" data-tip="' + esc(x[1]) + '"><span class="long">' + x[3] + '</span><span class="short">' + x[2] + '</span></button>'; }; };
     var hosts = {
       eras: '<div class="ops" role="menu" aria-label="' + esc(t('era_aria')) + '">' + eras.map(function (x) { return optionButton('era', x[0], esc(x[1]), x[0] === era); }).join('') + '</div><p class="small">' + t('era_note') + '</p>',
       languages: '<div class="ops" role="menu" aria-label="' + esc(t('lang')) + '">' + DATA.languages.map(function (l) { return optionButton('language', l[0], '<span lang="' + l[2] + '">' + esc(l[1]) + '</span>', l[0] === language); }).join('') + '</div>',
       theme: (DATA.site ? '<div class="sec"><h3>' + t('mode') + '</h3><div><div class="seg">' + segmentedHtml('mode', [['auto', t('mode_auto')], ['light', t('mode_light')], ['dark', t('mode_dark')]], mode) + '</div></div></div>' : '')
         + '<div class="sec"><h3>' + t('base') + '</h3><div class="ops two">' + BASES.map(function (p) { return '<button type="button" class="op" role="menuitemradio" data-base-op="' + p + '" aria-checked="' + (p === base) + '"><span class="lin"><i class="am" style="background:var(--am-' + p + ')"></i>' + t('b_' + p) + '</span></button>'; }).join('') + '</div></div>'
         + '<div class="sec"><h3>' + t('accent_t') + '</h3><div class="ops two">' + ACCENTS.map(function (p) { return '<button type="button" class="op" role="menuitemradio" data-accent-op="' + p + '" aria-checked="' + (p === accent) + '"><span class="lin"><i class="am" style="background:var(--' + (p === 'none' ? 'b-primary' : 'am-' + p) + ')"></i>' + t('d_' + p) + '</span></button>'; }).join('') + '</div></div>',
-      dir: [['upstream', t('dir_back'), iconSvg('arrowL'), '← ' + t('dir_back')], ['both', t('dir_both'), iconSvg('arrowLR'), t('dir_both')], ['downstream', t('dir_fwd'), iconSvg('arrowR'), t('dir_fwd') + ' →']].map(dualButton('v', dir)).join(''),
-      steps: [[1, t('step1'), '1', t('step1')], [2, t('step_n', { n: 2 }), '2', '2'], [3, t('step_n', { n: 3 }), '3', '3'], [0, t('step_all'), '∞', t('step_all')]].map(dualButton('d', steps)).join(''),
+      dir: [['upstream', t('dir_back_tip'), iconSvg('arrowL', 'd-in'), iconSvg('arrowL', 'd-in') + esc(t('dir_back'))], ['both', t('dir_both_tip'), iconSvg('arrowLR'), iconSvg('arrowLR') + esc(t('dir_both'))], ['downstream', t('dir_fwd_tip'), iconSvg('arrowR', 'd-out'), esc(t('dir_fwd')) + iconSvg('arrowR', 'd-out')]].map(dualButton('v', dir)).join(''),
+      steps: [[1, t('step1'), '1', esc(t('step1'))], [2, t('step_n', { n: 2 }), '2', '2'], [3, t('step_n', { n: 3 }), '3', '3'], [0, t('step_all'), iconSvg('infinity'), esc(t('step_all'))]].map(dualButton('d', steps)).join(''),
       iso: '<button type="button" class="btn" data-iso="1" aria-pressed="' + isolated + '" aria-label="' + esc(t(isolated ? 'show_all' : 'isolate')) + '" data-tip="' + esc(t(isolated ? 'show_all' : 'isolate')) + '"><span class="long">' + t(isolated ? 'show_all' : 'isolate') + '</span><span class="short">' + iconSvg('scan') + '</span></button>'
     };
     document.querySelectorAll('[data-host]').forEach(function (el) { el.innerHTML = hosts[el.getAttribute('data-host')]; });
