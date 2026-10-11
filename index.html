@@ -577,7 +577,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       fan: 'Fan-made tool, not affiliated with Paradox Interactive. Victoria 3 names and icons belong to Paradox Interactive.',
       privacy: 'No ads, no cookies. Anonymous visit counts only (Vercel Web Analytics).', data: 'Data read from game version {v}, generated on {d}.', repo: 'Source code',
       legend: 'Legend', lg_good: 'good', lg_bld: 'building: in from the left, out to the right; the fill is its category', lg_lock: 'building you cannot build yet',
-      lg_ln: 'link possible with your technologies', lg_fut: 'link that needs a future technology', lg_ret: 'thin dashes around the graph: an input made further ahead', ret_tip: '{a} → {b}: {q} per level', lg_up: 'upstream: what this is made of (blue)', lg_dn: 'downstream: where this goes (orange)',
+      lg_ln: 'link possible with your technologies', lg_fut: 'link that needs a future technology', lg_ret: 'thin dashes around the graph: an input made further ahead', ret_tip: '{a} → {b}: {q} per level', ret_tip_n: '{a} → {n} links here, per level', lg_up: 'upstream: what this is made of (blue)', lg_dn: 'downstream: where this goes (orange)',
       lg_have: 'technology you have', lg_miss: 'technology you lack',
       zoom: 'Zoom', zoom_out: 'Zoom out', zoom_in: 'Zoom in', fit: 'Fit', graph_aria: 'Production graph', node_b: 'Building {n}', node_g: 'Good {n}',
       hint: 'Hover a node to see its chain; click to pin it and choose methods.',
@@ -646,7 +646,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       fan: 'Ferramenta de fã, sem vínculo com a Paradox Interactive. Os nomes e ícones de Victoria 3 pertencem à Paradox Interactive.',
       privacy: 'Sem anúncios, sem cookies. Só contagem anônima de visitas (Vercel Web Analytics).', data: 'Dados lidos da versão {v} do jogo, gerados em {d}.', repo: 'Código-fonte',
       legend: 'Legenda', lg_good: 'mercadoria', lg_bld: 'edifício: entra pela esquerda, sai pela direita; a cor é a categoria', lg_lock: 'edifício que você ainda não pode construir',
-      lg_ln: 'ligação possível com as suas tecnologias', lg_fut: 'ligação que depende de tecnologia futura', lg_ret: 'tracejado fino por fora do grafo: insumo fabricado mais à frente', ret_tip: '{a} → {b}: {q} por nível', lg_up: 'para trás: do que isto é feito (azul)', lg_dn: 'para a frente: para onde isto vai (laranja)',
+      lg_ln: 'ligação possível com as suas tecnologias', lg_fut: 'ligação que depende de tecnologia futura', lg_ret: 'tracejado fino por fora do grafo: insumo fabricado mais à frente', ret_tip: '{a} → {b}: {q} por nível', ret_tip_n: '{a} → {n} ligações aqui, por nível', lg_up: 'para trás: do que isto é feito (azul)', lg_dn: 'para a frente: para onde isto vai (laranja)',
       lg_have: 'tecnologia que você tem', lg_miss: 'tecnologia que falta',
       zoom: 'Zoom', zoom_out: 'Afastar', zoom_in: 'Aproximar', fit: 'Ajustar', graph_aria: 'Grafo de produção', node_b: 'Edifício {n}', node_g: 'Mercadoria {n}',
       hint: 'Passe o mouse num nó para ver a cadeia dele; clique para fixar e escolher métodos.',
@@ -1393,7 +1393,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   // The return links at node scale s. Every bundle is a tree: one trunk out of the source, up a channel and along its lane,
   // a branch down the channel before each target column, and a last turn into each port. Each stretch is drawn once (so
   // the dashes do not pile up) and knows which links run through it; the dash pattern carries on from stretch to stretch.
-  // Returns the markup of the shared stretches and of the wide invisible paths that catch the mouse.
+  // Returns the markup of the shared stretches and of the wide invisible paths that catch the mouse: one per stretch and
+  // one per last turn, each knowing the links that run through it.
   function returnRoutes(s) {
     var nodes = layout.nodes, f1 = function (v) { return v.toFixed(1); }, shared = [], hits = [], QUARTER = Math.PI * TURN / 2;
     var ends = function (e) {
@@ -1409,7 +1410,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       var A = function (x, y) { return ' A' + TURN + ',' + TURN + ' 0 0 ' + sweep + ' ' + f1(x) + ',' + f1(y); };
       var start = ends(bu.edges[0]), sx = start.sx, sy = start.sy, xr = bu.xr;
       var style = function (at) { return ' style="--o:' + bu.opacity.toFixed(2) + ';--d:' + at.toFixed(1) + '"'; };
-      var stretch = function (d, at, es) { shared.push('<path class="rs" data-e="' + es.map(function (e) { return e.i; }).join(',') + '"' + style(at) + ' d="' + d + '"/>'); };
+      var hit = function (d, es) { hits.push('<path class="rhit" data-e="' + es.map(function (e) { return e.i; }).join(',') + '" d="' + d + '"/>'); };
+      var stretch = function (d, at, es) { shared.push('<path class="rs" data-e="' + es.map(function (e) { return e.i; }).join(',') + '"' + style(at) + ' d="' + d + '"/>'); hit(d, es); };
       var gapsLeft = Object.keys(bu.targets).map(Number).sort(function (x, y) { return bu.xd[y] - bu.xd[x]; }); // nearest branch first
       var after = function (j) { var es = []; gapsLeft.slice(j).forEach(function (k) { es = es.concat(bu.targets[k]); }); return es; };
       // trunk: out of the source, up the channel, onto the lane, as far as the first branch
@@ -1420,7 +1422,6 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       at += xr - TURN - (first + TURN);
       gapsLeft.forEach(function (k, j) {
         var xd = bu.xd[k], es = bu.targets[k].map(function (e) { return { e: e, p: ends(e) }; }).sort(function (x, y) { return Math.abs(x.p.ty - Y) - Math.abs(y.p.ty - Y); });
-        var toHere = head + L(xd + TURN, Y);
         // the lane carries on to the next branch
         if (j < gapsLeft.length - 1) stretch('M' + f1(xd + TURN) + ',' + f1(Y) + L(bu.xd[gapsLeft[j + 1]] + TURN, Y), at, after(j + 1));
         // the branch: off the lane, down the channel, and at each port a turn into it
@@ -1432,7 +1433,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
           e.stub = 'M' + f1(xd) + ',' + f1(yy) + A(xd + TURN, p.ty) + L(p.tx - 1, p.ty);
           e.stubStyle = style(down);
           e.reach = { x0: xd, x1: xr, y: Y };
-          hits.push('<path class="rhit" data-i="' + e.i + '" d="' + toHere + A(xd, Y - v * TURN) + L(xd, yy) + A(xd + TURN, p.ty) + L(p.tx - 1, p.ty) + '"/>');
+          hit(e.stub, [e]);
         });
         if (j < gapsLeft.length - 1) at += (xd + TURN) - (bu.xd[gapsLeft[j + 1]] + TURN);
       });
@@ -1793,20 +1794,24 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     tip.style.left = clamp(x, 4, Math.max(4, r.width - tip.offsetWidth - 4)) + 'px';
     tip.style.top = (y + tip.offsetHeight > r.height - sheet.offsetHeight - 4 ? Math.max(4, ev.clientY - r.top - tip.offsetHeight - 10) : y) + 'px';
   }
-  // a return link under the mouse lights up end to end and says what it carries
-  function lightReturn(i) {
+  // the return links that run through the stretch under the mouse light up end to end, and the tip says what they carry
+  function lightReturn(ids) {
     vp.querySelectorAll('.lit').forEach(function (el) { el.classList.remove('lit'); });
-    if (i === null) return;
-    vp.querySelectorAll('.e')[i].classList.add('lit');
-    vp.querySelectorAll('.rs').forEach(function (el) { if (el.getAttribute('data-e').split(',').indexOf(String(i)) >= 0) el.classList.add('lit'); });
+    if (!ids) return;
+    var edgeEls = vp.querySelectorAll('.e');
+    ids.forEach(function (i) { edgeEls[i].classList.add('lit'); });
+    vp.querySelectorAll('.rs').forEach(function (el) { if (el.getAttribute('data-e').split(',').some(function (i) { return ids.indexOf(i) >= 0; })) el.classList.add('lit'); });
   }
   svg.addEventListener('mouseover', function (ev) {
     if (pointers.size && moved) return;
     var over = ev.target.closest('.rhit');
     if (over) {
-      var e = layout.visibleEdges[Number(over.getAttribute('data-i'))];
-      hover(null); lightReturn(e.i);
-      tip.textContent = t('ret_tip', { a: nodeName(e.s), b: nodeName(e.t), q: range(e.qMin, e.qMax) }); tip.hidden = false; placeTip(ev);
+      var ids = over.getAttribute('data-e').split(','), es = ids.map(function (i) { return layout.visibleEdges[Number(i)]; }), e = es[0];
+      hover(null); lightReturn(ids);
+      // a stretch shared by several links (they all leave the same node) lists every one of them
+      if (es.length === 1) tip.textContent = t('ret_tip', { a: nodeName(e.s), b: nodeName(e.t), q: range(e.qMin, e.qMax) });
+      else tip.innerHTML = '<b>' + esc(t('ret_tip_n', { a: nodeName(e.s), n: es.length })) + '</b><div class="r">' + es.map(function (x) { return esc(nodeName(x.t) + ': ' + range(x.qMin, x.qMax)); }).sort().join('<br>') + '</div>';
+      tip.hidden = false; placeTip(ev);
       return;
     }
     lightReturn(null);
