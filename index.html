@@ -565,7 +565,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       use1: 'Mouse wheel or pinch zooms; drag to move. From 100% zoom on, every amount is shown.',
       use2: 'Hovering a node lights up its chain: one step each way by default.',
       use3: 'Clicking pins the highlight and opens the node’s sheet below. For a building, the sheet has one row per method group showing what is ticked in it; click a group to open its methods, each with a checkbox. Unticking redraws at once. Drag the top edge of the sheet to change its height.',
-      use4: 'With a node pinned, the controls on the right of the sheet header pick the direction and how far the chain goes (one step at a time with − and +, up to the whole chain; the choice is remembered); “Isolate” hides the rest. Click the empty map or the close button to release the node.',
+      use4: 'With a node pinned, the controls on the right of the sheet header pick the direction and how far the chain goes (one step at a time with − and +, up to the whole chain; the choice is remembered); “Isolate” hides the rest. Click the empty map or the close button to release the node. The pinned node and these choices go into the address, so a link or a bookmark opens on the same chain and Back returns to the previous node.',
       use5: '“Lock focus” keeps the chain on the pinned node while you click the others: each click opens that node’s sheet, so you can change the methods of every building in the chain without losing it. The open node gets a dashed ring; click the empty map to go back to the pinned one.',
       keys_title: 'Shortcuts', k_search: 'search', k_esc: 'close what is open, then release the node', k_fit: 'fit the graph', k_zoom: 'zoom in and out',
       k_pan: 'move the map (with the map focused)', k_pin: 'pin the focused node', k_more: 'chain: one step further', k_less: 'chain: one step closer', k_max: 'chain: whole chain', k_one: 'chain: back to one step',
@@ -634,7 +634,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       use1: 'Roda do mouse ou pinça aproxima; arrastar move. A partir de 100% de zoom todas as quantidades aparecem.',
       use2: 'Passar o mouse num nó acende a cadeia dele: um passo para cada lado, por padrão.',
       use3: 'Clicar fixa o realce e abre a folha do nó embaixo. Num edifício, a folha traz uma linha por grupo de métodos com o que está marcado nele; clique num grupo para abrir os métodos, cada um com uma caixa de marcar. Desmarcar redesenha na hora. Arraste a borda de cima da folha para mudar a altura.',
-      use4: 'Com um nó fixado, os controles à direita do cabeçalho da folha escolhem a direção e até onde a cadeia vai (um passo por vez com − e +, até a cadeia inteira; a escolha fica guardada); “Isolar” esconde o resto. Clicar no vazio ou no botão de fechar solta o nó.',
+      use4: 'Com um nó fixado, os controles à direita do cabeçalho da folha escolhem a direção e até onde a cadeia vai (um passo por vez com − e +, até a cadeia inteira; a escolha fica guardada); “Isolar” esconde o resto. Clicar no vazio ou no botão de fechar solta o nó. O nó fixado e essas escolhas vão para o endereço: um link ou favorito abre na mesma cadeia, e Voltar retorna ao nó anterior.',
       use5: '“Travar foco” mantém a cadeia no nó fixado enquanto você clica nos outros: cada clique abre a folha daquele nó, então dá para trocar os métodos de cada edifício da cadeia sem perdê-la. O nó aberto ganha um anel tracejado; clique no vazio para voltar ao nó fixado.',
       keys_title: 'Atalhos', k_search: 'buscar', k_esc: 'fechar o que está aberto, depois soltar o nó', k_fit: 'ajustar o grafo à tela', k_zoom: 'aproximar e afastar',
       k_pan: 'mover o mapa (com o foco no mapa)', k_pin: 'fixar o nó em foco', k_more: 'cadeia: um passo a mais', k_less: 'cadeia: um passo a menos', k_max: 'cadeia: inteira', k_one: 'cadeia: voltar a um passo',
@@ -1665,9 +1665,10 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     else if (action === 'toggle') steps = r.now >= r.max ? 1 : 0;
     if (steps === before) return;
     if (isolated) renderAll(true); else { highlightOnly(); saveState(); }
+    syncUrl();
   }
-  function setDirection(v) { if (v === dir) return; dir = v; if (isolated) renderAll(true); else { highlightOnly(); saveState(); } }
-  function toggleIsolated() { isolated = !isolated; renderAll(true); if (!isolated) highlightOnly(); }
+  function setDirection(v) { if (v === dir) return; dir = v; if (isolated) renderAll(true); else { highlightOnly(); saveState(); } syncUrl(); }
+  function toggleIsolated() { isolated = !isolated; renderAll(true); if (!isolated) highlightOnly(); syncUrl(); }
   var lastChain = null;
   function chainOf(id, pinnedMode) {
     var ix = layout.ix, nodesInChain = new Map([[id, { side: 'self', d: 0 }]]), edgesInChain = new Map();
@@ -1806,7 +1807,11 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     if (pointers.size && moved) return;
     var over = ev.target.closest('.rhit');
     if (over) {
-      var ids = over.getAttribute('data-e').split(','), es = ids.map(function (i) { return layout.visibleEdges[Number(i)]; }), e = es[0];
+      var ids = over.getAttribute('data-e').split(','), es = ids.map(function (i) { return layout.visibleEdges[Number(i)]; }), e;
+      // with a node pinned, a shared stretch only speaks for the links of its chain (when it carries any)
+      var mine = pinned && lastChain ? es.filter(function (x) { return lastChain.edgesInChain.has(x); }) : [];
+      if (mine.length) { es = mine; ids = es.map(function (x) { return String(x.i); }); }
+      e = es[0];
       hover(null); lightReturn(ids);
       // a stretch shared by several links (they all leave the same node) lists every one of them
       if (es.length === 1) tip.textContent = t('ret_tip', { a: nodeName(e.s), b: nodeName(e.t), q: range(e.qMin, e.qMax) });
@@ -2135,6 +2140,42 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     if (pinned) frameChain();
     hideTip();
   }
+  // ---------- the focus in the address ----------
+  // ?focus=<good or building>&dir=up|down&steps=<n>|all&iso=1 — the pinned node and what is seen of its chain. Direction
+  // "both" and one step are left out. The language keeps the #anchor. The focus lock and the ticked methods are not in it.
+  var URL_KEYS = ['focus', 'dir', 'steps', 'iso'];
+  // pinning or releasing adds an entry to the history (Back returns to the previous focus); the rest only rewrites it
+  function syncUrl() {
+    try {
+      var p = new URLSearchParams(location.search), before = p.get('focus'), now = pinned ? pinned.slice(2) : null;
+      URL_KEYS.forEach(function (k) { p.delete(k); });
+      if (pinned) {
+        p.set('focus', now);
+        if (dir !== 'both') p.set('dir', dir === 'upstream' ? 'up' : 'down');
+        if (steps !== 1) p.set('steps', steps || 'all');
+        if (isolated) p.set('iso', '1');
+      }
+      var q = p.toString(); q = q ? '?' + q : '';
+      if (q === location.search) return;
+      history[before === now ? 'replaceState' : 'pushState'](null, '', location.pathname + q + location.hash);
+    } catch (e) { /* some frames forbid it */ }
+  }
+  // reads the address into the state; true when something changed and the page has to be drawn again
+  function stateFromUrl() {
+    var p;
+    try { p = new URLSearchParams(location.search); } catch (e) { return false; }
+    var v = p.get('focus'), id = v && BUILDINGS[v] ? 'b:' + v : v && GOODS[v] ? 'g:' + v : null;
+    var d = { up: 'upstream', down: 'downstream' }[p.get('dir')] || 'both';
+    var n = p.get('steps') === 'all' ? 0 : Number(p.get('steps')); if (!Number.isInteger(n) || n < 0 || n > 99 || !p.get('steps')) n = 1;
+    var iso = !!id && p.get('iso') === '1';
+    if (id === pinned && (!id || (d === dir && n === steps && iso === isolated))) return false;
+    if (id) { dir = d; steps = n; if (id[0] === 'b') hiddenCategories.delete(BUILDINGS[v].category); }
+    pinned = id; isolated = iso; locked = false; shown = null; collapsed = false;
+    openGroup = groupToOpen(id);
+    return true;
+  }
+  window.addEventListener('popstate', function () { if (stateFromUrl()) { renderAll(true); if (pinned && !isolated) highlightOnly(); } });
+
   // every group starts closed; a building with a single group shows it open
   var groupToOpen = function (id) { return id && id[0] === 'b' && BUILDINGS[id.slice(2)].groups.length === 1 ? 0 : null; };
   // focus locked: opens the sheet of another node (null = back to the pinned one); the chain and the camera stay
@@ -2158,6 +2199,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     // a node that is not in the drawing (building removed from the graph, good without links) has to come in: then redraw
     if (redraw || !layout || (id && !layout.nodes[id])) { renderAll(true); if (pinned && !isolated) highlightOnly(); }
     else highlightOnly();
+    syncUrl();
   }
   // what is ticked changed: redo the sums and the drawing, keeping the camera and the sheet scroll
   function ticksChanged(focusId) {
@@ -2398,6 +2440,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   setLanguage(initialLanguage());
   recalculate();
   renderAll(true);
+  // a focus in the address is pinned once the graph is laid out
+  if (stateFromUrl()) { renderAll(true); if (pinned && !isolated) highlightOnly(); }
   stageSize = { w: stage.clientWidth, h: stage.clientHeight };
 })();
 </script>
