@@ -1662,9 +1662,18 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
         });
         frontier = next;
       }
+      // the walk stopped at the reach: the farthest nodes still have their links to nodes already in the chain (a mine at
+      // the last step that takes the tools met three steps before). They belong to it, one step further.
+      if (lim > 0) closing.push(function () {
+        frontier.forEach(function (n) {
+          (nextEdges[n] || []).forEach(function (e) { if (seen.has(otherEnd(e)) && !edgesInChain.has(e)) edgesInChain.set(e, { side: side, d: d }); });
+        });
+      });
     };
+    var closing = [];
     walk(limitUp, 'up', ix.inn, function (e) { return e.s; });
     walk(limitDown, 'dn', ix.out, function (e) { return e.t; });
+    closing.forEach(function (f) { f(); }); // after both walks, so a link one of them reaches properly keeps its side and distance
     return { nodesInChain: nodesInChain, edgesInChain: edgesInChain };
   }
   function paintHighlight() {
