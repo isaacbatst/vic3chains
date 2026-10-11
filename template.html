@@ -173,6 +173,8 @@ img.ic { display: inline-block; flex: none; width: 20px; height: 20px; object-fi
 .chip { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--secondary); min-width: 0; max-width: 240px; flex: 0 1 auto; margin-left: 4px; }
 .chip .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .chip .x { color: var(--muted-foreground); width: 14px; height: 14px; }
+.chip .lock { display: none; flex: none; width: 14px; height: 14px; }
+.chip.locked .lock { display: block; }
 /* when the text no longer fits, every trigger keeps only its icon; only below 520 px do Era and Language leave the bar */
 @media (max-width: 899px) {
   .top .rt, .top .tx .tri { display: none; }
@@ -190,6 +192,7 @@ img.ic { display: inline-block; flex: none; width: 20px; height: 20px; object-fi
 .cbar .seg button { height: 22px; padding: 0 8px; display: inline-flex; align-items: center; }
 .cbar .btn { height: 28px; display: inline-flex; align-items: center; gap: 6px; }
 .cbar .long { display: inline-flex; align-items: center; gap: 5px; }
+.cbar .btn[data-lock][aria-pressed="true"] { background: var(--primary); border-color: var(--primary); color: var(--primary-foreground); }
 /* reach: closer / value / further, then whole chain */
 .stp { display: inline-flex; align-items: center; gap: 1px; }
 .stp .tx.sq { width: 28px; height: 28px; }
@@ -260,7 +263,7 @@ kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border)
 #svg:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
 /* a click also focuses: while the last interaction was a pointer, no browser focus ring on the map, its nodes or the sheet */
 [data-pointer-focus] #svg, [data-pointer-focus] #svg *, [data-pointer-focus] .stage, [data-pointer-focus] .sheet { outline: none !important; }
-[data-pointer-focus] .n:focus-visible:not(.self) .ring { display: none; }
+[data-pointer-focus] .n:focus-visible:not(.self):not(.shown) .ring { display: none; }
 .stage, .sheet { outline: none; }
 #svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; font-family: var(--body); touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
 .stage.pan #svg { cursor: grabbing; }
@@ -285,6 +288,8 @@ kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border)
 /* the ring is state: pinned node and keyboard focus */
 .n .ring { fill: none; stroke: var(--primary); stroke-width: 2; vector-effect: non-scaling-stroke; display: none; }
 .n.self .ring, .n:focus-visible .ring { display: block; }
+/* focus locked: the node whose sheet is open, when it is not the pinned one, gets the same ring in dashes */
+.n.shown .ring { display: block; stroke-dasharray: 5 4; }
 /* a pinned good becomes a block for as long as it is pinned: opaque plate behind icon and name, name in the weight of a building */
 .n .plate { fill: var(--card); stroke: var(--border); stroke-width: 1; vector-effect: non-scaling-stroke; display: none; }
 .n.g.self .plate { display: block; }
@@ -463,7 +468,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     <button type="button" class="tx" id="btn-methods" aria-expanded="false" aria-controls="menu-methods"></button>
     <button type="button" class="tx wide-only" id="btn-era" aria-expanded="false" aria-controls="menu-era"></button>
     <button type="button" class="tx" id="btn-filters" aria-expanded="false" aria-controls="menu-filters"></button>
-    <button type="button" class="chip" id="chip" hidden><span class="nm" id="chip-name"></span><svg class="ico x" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+    <button type="button" class="chip" id="chip" hidden><svg class="ico lock" viewBox="0 0 24 24" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span class="nm" id="chip-name"></span><svg class="ico x" viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
     <span class="spacer"></span>
     <button type="button" class="tx" id="btn-theme" aria-expanded="false" aria-controls="menu-theme"></button>
     <button type="button" class="tx wide-only" id="btn-language" aria-expanded="false" aria-controls="menu-language"></button>
@@ -514,7 +519,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       custom: 'Custom', a_methods: 'Production methods: {v}', a_era: 'Technology era: {v}', a_filters: ['Filters, {n} active', 'Filters, {n} active'], a_lang: 'Language: {v}', f_vis: '{a} of {b} categories visible', f_reset: 'Restore defaults', unpin: 'Release node', filters: 'Filters', help_aria: 'Help and rules', lang: 'Language',
       chain: 'Highlighted chain', dir_back: 'Upstream', dir_both: 'Both', dir_fwd: 'Downstream', dir_back_tip: 'Upstream: what this is made of (blue)', dir_both_tip: 'Both: upstream in blue, downstream in orange', dir_fwd_tip: 'Downstream: where this goes (orange)', step1: '1 step', step_n: '{n} steps', step_all: 'Whole chain', theme: 'Theme', base: 'Base', accent_t: 'Accent', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'None', d_violet: 'Violet', d_emerald: 'Emerald', d_rose: 'Rose', d_amber: 'Amber', mode: 'Mode', mode_auto: 'Automatic', mode_light: 'Light', mode_dark: 'Dark',
       prefs: 'Preferences', isolate: 'Isolate chain', show_all: 'Show everything', help: 'Help', era_opt_all: 'All eras', era_opt: 'Up to era {e}', era_aria: 'My technologies go up to era',
-      dir_aria: 'Direction of the chain', steps_aria: 'Reach',
+      dir_aria: 'Direction of the chain', steps_aria: 'Reach', lock: 'Lock focus', lock_on: 'Focus locked', lock_tip: 'Lock the focus: clicking another node opens its sheet and the chain stays', lock_on_tip: 'Focus locked on {n}: click to unlock',
       sc_title: 'Tick methods in every building', sc_note: 'The page opens on Basic: one recipe per building, exact amounts. These are shortcuts, not modes: after using one, tick and untick freely in each building’s sheet.',
       sc_all: 'Everything', sc_all_d: 'Every method of every building. The graph shows all the game allows.',
       sc_basic: 'Basic', sc_basic_d: 'One method per group: the first. Optional groups stay off.',
@@ -534,9 +539,10 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       use2: 'Hovering a node lights up its chain: one step each way by default.',
       use3: 'Clicking pins the highlight and opens the node’s sheet below. For a building, the sheet has one row per method group showing what is ticked in it; click a group to open its methods, each with a checkbox. Unticking redraws at once. Drag the top edge of the sheet to change its height.',
       use4: 'With a node pinned, the controls on the right of the sheet header pick the direction and how far the chain goes (one step at a time with − and +, up to the whole chain; the choice is remembered); “Isolate” hides the rest. Click the empty map or the close button to release the node.',
+      use5: '“Lock focus” keeps the chain on the pinned node while you click the others: each click opens that node’s sheet, so you can change the methods of every building in the chain without losing it. The open node gets a dashed ring; click the empty map to go back to the pinned one.',
       keys_title: 'Shortcuts', k_search: 'search', k_esc: 'close what is open, then release the node', k_fit: 'fit the graph', k_zoom: 'zoom in and out',
       k_pan: 'move the map (with the map focused)', k_pin: 'pin the focused node', k_more: 'chain: one step further', k_less: 'chain: one step closer', k_max: 'chain: whole chain', k_one: 'chain: back to one step',
-      k_dir: 'chain: upstream, both, downstream', k_iso: 'isolate the chain, or show everything', k_note: 'The chain shortcuts work while a node is pinned.',
+      k_dir: 'chain: upstream, both, downstream', k_iso: 'isolate the chain, or show everything', k_lock: 'lock or unlock the focus', k_note: 'The chain shortcuts work while a node is pinned.',
       step_less: 'One step closer', step_more: 'One step further', step_back: 'Back to one step',
       general_title: 'General inputs',
       general_text: 'What a building only consumes through a support group (a secondary group that does not change what it produces: automation, rail transport, harvesting machines, fences) stays off the drawing and off the highlighted chains. “Show general inputs”, in Filters, draws them all. The node’s sheet always shows the whole recipe.',
@@ -582,7 +588,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       custom: 'Personalizado', a_methods: 'Métodos de produção: {v}', a_era: 'Era das tecnologias: {v}', a_filters: ['Filtros, {n} ativo', 'Filtros, {n} ativos'], a_lang: 'Idioma: {v}', f_vis: '{a} de {b} categorias visíveis', f_reset: 'Restaurar padrão', unpin: 'Soltar nó', filters: 'Filtros', help_aria: 'Ajuda e regras', lang: 'Idioma',
       chain: 'Cadeia realçada', dir_back: 'Para trás', dir_both: 'As duas', dir_fwd: 'Para a frente', dir_back_tip: 'Para trás: do que isto é feito (azul)', dir_both_tip: 'As duas: para trás em azul, para a frente em laranja', dir_fwd_tip: 'Para a frente: para onde isto vai (laranja)', step1: '1 passo', step_n: '{n} passos', step_all: 'Cadeia inteira', theme: 'Tema', base: 'Base', accent_t: 'Destaque', b_neutral: 'Neutral', b_stone: 'Stone', b_zinc: 'Zinc', b_slate: 'Slate', d_none: 'Nenhuma', d_violet: 'Violeta', d_emerald: 'Esmeralda', d_rose: 'Rosa', d_amber: 'Âmbar', mode: 'Modo', mode_auto: 'Automático', mode_light: 'Claro', mode_dark: 'Escuro',
       prefs: 'Preferências', isolate: 'Isolar cadeia', show_all: 'Mostrar tudo', help: 'Ajuda', era_opt_all: 'Todas as eras', era_opt: 'Até a era {e}', era_aria: 'Minhas tecnologias vão até a era',
-      dir_aria: 'Direção da cadeia', steps_aria: 'Alcance',
+      dir_aria: 'Direção da cadeia', steps_aria: 'Alcance', lock: 'Travar foco', lock_on: 'Foco travado', lock_tip: 'Travar o foco: clicar em outro nó abre a folha dele e a cadeia fica', lock_on_tip: 'Foco travado em {n}: clique para destravar',
       sc_title: 'Marcar métodos em todos os edifícios', sc_note: 'A página abre em Básico: uma receita por edifício, quantidades exatas. São atalhos, não modos: depois de usar um, marque e desmarque à vontade na folha de cada edifício.',
       sc_all: 'Tudo', sc_all_d: 'Todos os métodos de todos os edifícios. O grafo mostra tudo o que o jogo permite.',
       sc_basic: 'Básico', sc_basic_d: 'Um método por grupo: o primeiro. Grupos opcionais ficam desligados.',
@@ -602,9 +608,10 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       use2: 'Passar o mouse num nó acende a cadeia dele: um passo para cada lado, por padrão.',
       use3: 'Clicar fixa o realce e abre a folha do nó embaixo. Num edifício, a folha traz uma linha por grupo de métodos com o que está marcado nele; clique num grupo para abrir os métodos, cada um com uma caixa de marcar. Desmarcar redesenha na hora. Arraste a borda de cima da folha para mudar a altura.',
       use4: 'Com um nó fixado, os controles à direita do cabeçalho da folha escolhem a direção e até onde a cadeia vai (um passo por vez com − e +, até a cadeia inteira; a escolha fica guardada); “Isolar” esconde o resto. Clicar no vazio ou no botão de fechar solta o nó.',
+      use5: '“Travar foco” mantém a cadeia no nó fixado enquanto você clica nos outros: cada clique abre a folha daquele nó, então dá para trocar os métodos de cada edifício da cadeia sem perdê-la. O nó aberto ganha um anel tracejado; clique no vazio para voltar ao nó fixado.',
       keys_title: 'Atalhos', k_search: 'buscar', k_esc: 'fechar o que está aberto, depois soltar o nó', k_fit: 'ajustar o grafo à tela', k_zoom: 'aproximar e afastar',
       k_pan: 'mover o mapa (com o foco no mapa)', k_pin: 'fixar o nó em foco', k_more: 'cadeia: um passo a mais', k_less: 'cadeia: um passo a menos', k_max: 'cadeia: inteira', k_one: 'cadeia: voltar a um passo',
-      k_dir: 'cadeia: para trás, as duas, para a frente', k_iso: 'isolar a cadeia, ou mostrar tudo', k_note: 'Os atalhos de cadeia valem com um nó fixado.',
+      k_dir: 'cadeia: para trás, as duas, para a frente', k_iso: 'isolar a cadeia, ou mostrar tudo', k_lock: 'travar ou destravar o foco', k_note: 'Os atalhos de cadeia valem com um nó fixado.',
       step_less: 'Um passo a menos', step_more: 'Um passo a mais', step_back: 'Voltar a um passo',
       general_title: 'Insumos gerais',
       general_text: 'O que um edifício só consome por um grupo de apoio (grupo secundário que não muda o que ele produz: automação, transporte ferroviário, máquinas de colheita, cercas) fica fora do desenho e das cadeias realçadas. “Mostrar insumos gerais”, em Filtros, desenha todos. A folha do nó sempre mostra a receita inteira.',
@@ -706,6 +713,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     arrowL: '<path d="m12 19-7-7 7-7"/><path d="M19 12H5"/>',
     arrowR: '<path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>',
     arrowLR: '<g class="s-in"><path d="M8 3 4 7l4 4"/><path d="M4 7h16"/></g><g class="s-out"><path d="m16 21 4-4-4-4"/><path d="M20 17H4"/></g>',
+    lock: '<rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
     scan: '<circle cx="12" cy="12" r="3"/><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/>',
     chevsDown: '<path d="m7 6 5 5 5-5"/><path d="m7 13 5 5 5-5"/>',
     chevsUp: '<path d="m17 11-5-5-5 5"/><path d="m17 18-5-5-5 5"/>',
@@ -737,6 +745,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   var shortcut = 'basic'; // last global shortcut used; the page opens on 'basic'
   var pinned = null;       // pinned node (null = none)
   var isolated = false;   // true = only the chain of the pinned node is drawn
+  var locked = false;     // focus lock: a click on another node opens its sheet and the chain stays on the pinned one
+  var shown = null;       // node whose sheet is open while the focus is locked, when it is not the pinned one
   var hovered = null;      // node under the mouse or with keyboard focus
   var dir = 'both';     // 'upstream' | 'both' | 'downstream'
   var steps = 1;        // preferred reach of the chain: a number of steps, or 0 = whole chain
@@ -1580,7 +1590,9 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   svg.addEventListener('click', function (ev) {
     if (moved) { moved = false; return; }
     var n = ev.target.closest('[data-n]');
-    if (n) pinNode(n.getAttribute('data-n')); else if (pinned) pinNode(null);
+    if (n) pinNode(n.getAttribute('data-n'));
+    else if (locked) { if (shown) showNode(null); } // a stray click does not drop a locked focus: it only goes back to its sheet
+    else if (pinned) pinNode(null);
   });
   svg.addEventListener('keydown', function (ev) {
     if (ev.key !== 'Enter' && ev.key !== ' ') return;
@@ -1651,7 +1663,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     return { nodesInChain: nodesInChain, edgesInChain: edgesInChain };
   }
   function paintHighlight() {
-    var CLEAR_CLASSES = ['hv', 'up', 'dn', 'w1', 'w2', 'w3', 'chain-up', 'chain-down', 'self', 'hover-only'];
+    var CLEAR_CLASSES = ['hv', 'up', 'dn', 'w1', 'w2', 'w3', 'chain-up', 'chain-down', 'self', 'hover-only', 'shown'];
     syncPinGeometry();
     vp.querySelectorAll('.hv').forEach(function (e) { CLEAR_CLASSES.forEach(function (c) { e.classList.remove(c); }); if (e.classList.contains('e')) e.setAttribute('marker-end', 'url(#arr)'); });
     var id = pinned || hovered;
@@ -1675,6 +1687,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     vp.querySelectorAll('.n').forEach(function (n) {
       var v = c.nodesInChain.get(n.getAttribute('data-n'));
       if (v) n.classList.add('hv', v.side === 'up' ? 'chain-up' : v.side === 'dn' ? 'chain-down' : (pinned ? 'self' : 'hover-only'));
+      if (n.getAttribute('data-n') === shown) n.classList.add('hv', 'shown'); // lit even when it is outside the chain
     });
     var names = { up: [], dn: [] };
     c.nodesInChain.forEach(function (v, k) { if (names[v.side]) names[v.side].push(nodeName(k)); });
@@ -1939,14 +1952,14 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       applySheetHeight();
       return;
     }
-    var body, head;
-    if (pinned[0] === 'g') {
-      var g = GOODS[pinned.slice(2)];
-      head = iconImg(pinned) + '<h2 title="' + esc(goodName(g.id)) + '">' + esc(goodName(g.id)) + '</h2><span class="cat for-good">' + esc(t('merc', { c: t('gc_' + g.kind), p: fmt(g.price) })) + '</span>';
+    var body, head, open = shown || pinned;
+    if (open[0] === 'g') {
+      var g = GOODS[open.slice(2)];
+      head = iconImg(open) + '<h2 title="' + esc(goodName(g.id)) + '">' + esc(goodName(g.id)) + '</h2><span class="cat for-good">' + esc(t('merc', { c: t('gc_' + g.kind), p: fmt(g.price) })) + '</span>';
       body = goodTable(g);
     } else {
-      var b = BUILDINGS[pinned.slice(2)], included = !excluded.has(b.id);
-      head = iconImg(pinned) + '<h2' + (included ? '' : ' class="off"') + ' title="' + esc(termName(b.id)) + '">' + esc(termName(b.id)) + '</h2>'
+      var b = BUILDINGS[open.slice(2)], included = !excluded.has(b.id);
+      head = iconImg(open) + '<h2' + (included ? '' : ' class="off"') + ' title="' + esc(termName(b.id)) + '">' + esc(termName(b.id)) + '</h2>'
         + (included ? '' : '<span class="excluded-badge">' + t('off_badge') + '</span>')
         + '<span class="cat"><i class="sw" style="--cat:' + categoryColor(b.category) + '" title="' + esc(categoryName(b.category)) + '"></i><span class="ctx">' + esc(categoryName(b.category)) + '</span></span>' + techHtml(b.tech)
         + '<button type="button" class="tx sq eye" id="eye-toggle" data-include="' + b.id + '" aria-pressed="' + included + '" aria-label="' + esc(t('eye')) + '" data-tip="' + esc(t(included ? 'eye_on' : 'eye_off')) + '">'
@@ -1956,7 +1969,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     sheet.className = 'sheet pinned' + (collapsed ? ' collapsed' : '');
     sheet.innerHTML = (collapsed ? '' : '<div class="grip" id="grip" role="separator" aria-orientation="horizontal" tabindex="0" aria-label="' + esc(t('grip')) + '"></div>')
       + '<div class="sh-head"><div class="ttl">' + head + '</div>'
-      + '<div class="cbar" id="cbar" role="group"><div class="seg" data-host="dir" role="group" aria-label="' + esc(t('dir_aria')) + '"></div><div class="stp" data-host="steps" role="group" aria-label="' + esc(t('steps_aria')) + '"></div><span data-host="iso"></span></div>'
+      + '<div class="cbar" id="cbar" role="group"><div class="seg" data-host="dir" role="group" aria-label="' + esc(t('dir_aria')) + '"></div><div class="stp" data-host="steps" role="group" aria-label="' + esc(t('steps_aria')) + '"></div><span data-host="iso"></span><span data-host="lock"></span></div>'
       + '<button type="button" class="tx sq" id="collapse" aria-expanded="' + !collapsed + '" aria-label="' + esc(t(collapsed ? 'sheet_open' : 'sheet_close')) + '" data-tip="' + esc(t(collapsed ? 'sheet_open' : 'sheet_close')) + '">' + iconSvg(collapsed ? 'chevsUp' : 'chevsDown') + '</button>'
       + '<button type="button" class="tx sq" data-release="1" aria-label="' + esc(t('unpin')) + '" data-tip="' + esc(t('unpin')) + '">' + iconSvg('x') + '</button></div>'
       + (collapsed ? '' : '<div class="sh-body">' + body + '</div>');
@@ -1995,8 +2008,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var li = function (msgKeys) { return '<ul>' + msgKeys.map(function (k) { return '<li>' + t(k) + '</li>'; }).join('') + '</ul>'; };
     $('menu-help').innerHTML = '<div class="sec"><h2>' + t(DATA.site ? 'title' : 'brand') + '</h2><p class="small">' + t('help_intro', { v: esc(DATA.gameVersion) }) + '</p></div>'
       + '<div class="sec"><h3>' + t('read_title') + '</h3>' + li(['read1', 'read2', 'read3', 'read4', 'read5']) + '</div>'
-      + '<div class="sec"><h3>' + t('use_title') + '</h3>' + li(['use1', 'use2', 'use3', 'use4']) + '</div>'
-      + '<div class="sec"><h3>' + t('keys_title') + '</h3><dl class="keys">' + [['/', 'k_search'], ['Esc', 'k_esc'], ['0', 'k_fit'], ['+ −', 'k_zoom'], ['← ↑ → ↓', 'k_pan'], ['Enter', 'k_pin'], ['] .', 'k_more'], ['[ ,', 'k_less'], ['Shift+] Shift+.', 'k_max'], ['Shift+[ Shift+,', 'k_one'], ['U B D', 'k_dir'], ['I', 'k_iso']].map(function (x) { return '<dt>' + x[0].split(' ').map(function (k) { return '<kbd>' + k + '</kbd>'; }).join(' ') + '</dt><dd>' + t(x[1]) + '</dd>'; }).join('') + '</dl><p class="small">' + t('k_note') + '</p></div>'
+      + '<div class="sec"><h3>' + t('use_title') + '</h3>' + li(['use1', 'use2', 'use3', 'use4', 'use5']) + '</div>'
+      + '<div class="sec"><h3>' + t('keys_title') + '</h3><dl class="keys">' + [['/', 'k_search'], ['Esc', 'k_esc'], ['0', 'k_fit'], ['+ −', 'k_zoom'], ['← ↑ → ↓', 'k_pan'], ['Enter', 'k_pin'], ['] .', 'k_more'], ['[ ,', 'k_less'], ['Shift+] Shift+.', 'k_max'], ['Shift+[ Shift+,', 'k_one'], ['U B D', 'k_dir'], ['I', 'k_iso'], ['L', 'k_lock']].map(function (x) { return '<dt>' + x[0].split(' ').map(function (k) { return '<kbd>' + k + '</kbd>'; }).join(' ') + '</dt><dd>' + t(x[1]) + '</dd>'; }).join('') + '</dl><p class="small">' + t('k_note') + '</p></div>'
       + '<div class="sec"><h3>' + t('general_title') + '</h3><p class="small">' + t('general_text') + '</p></div>'
       + '<p class="small">' + t('help_foot') + '</p>'
       + '<p class="small foot">' + (DATA.analytics ? t('privacy') + ' ' : '') + t('fan') + ' ' + t('data', { v: esc(DATA.gameVersion), d: esc(DATA.generatedOn) }) + ' <a href="' + esc(DATA.repo) + '" target="_blank" rel="noopener">' + t('repo') + '</a></p>';
@@ -2036,7 +2049,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
           + sb('further', 'plus', t('step_more'), ']', whole)
           + sb('toggle', 'maximize', whole ? t('step_back') : t('step_all'), whole ? 'Shift+[' : 'Shift+]', false, whole);
       })(),
-      iso: '<button type="button" class="btn" data-iso="1" aria-pressed="' + isolated + '" aria-label="' + esc(t(isolated ? 'show_all' : 'isolate')) + '" data-tip="' + esc(t(isolated ? 'show_all' : 'isolate') + '  I') + '"><span class="long">' + t(isolated ? 'show_all' : 'isolate') + '</span><span class="short">' + iconSvg('scan') + '</span></button>'
+      iso: '<button type="button" class="btn" data-iso="1" aria-pressed="' + isolated + '" aria-label="' + esc(t(isolated ? 'show_all' : 'isolate')) + '" data-tip="' + esc(t(isolated ? 'show_all' : 'isolate') + '  I') + '"><span class="long">' + t(isolated ? 'show_all' : 'isolate') + '</span><span class="short">' + iconSvg('scan') + '</span></button>',
+      lock: pinned ? '<button type="button" class="btn" data-lock="1" aria-pressed="' + locked + '" aria-label="' + esc(t('lock')) + '" data-tip="' + esc(t(locked ? 'lock_on_tip' : 'lock_tip', { n: nodeName(pinned) }) + '  L') + '"><span class="long">' + iconSvg('lock') + t(locked ? 'lock_on' : 'lock') + '</span><span class="short">' + iconSvg('lock') + '</span></button>' : ''
     };
     document.querySelectorAll('[data-host]').forEach(function (el) { el.innerHTML = hosts[el.getAttribute('data-host')]; });
     var changed = differsFromShortcut();
@@ -2047,7 +2061,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     $('shortcuts').innerHTML = SHORTCUTS.map(function (a) {
       return '<button type="button" class="shortcut" role="menuitemradio" data-shortcut="' + a + '" aria-checked="' + (a === shortcut && !changed) + '"><b>' + t('sc_' + a) + '</b>' + (a === shortcut && changed ? '<span class="small">' + t('sc_last') + '</span>' : '') + '<span class="small">' + t('sc_' + a + '_d') + '</span></button>';
     }).join('');
-    $('chip').hidden = !pinned;
+    $('chip').hidden = !pinned; $('chip').classList.toggle('locked', locked);
     if (pinned) $('chip-name').textContent = nodeName(pinned);
     $('general-inputs').checked = showGeneral;
     var hiddenCount = DATA.categories.filter(function (c) { return hiddenCategories.has(c); }).length;
@@ -2086,13 +2100,26 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     if (pinned) frameChain();
     hideTip();
   }
+  // every group starts closed; a building with a single group shows it open
+  var groupToOpen = function (id) { return id && id[0] === 'b' && BUILDINGS[id.slice(2)].groups.length === 1 ? 0 : null; };
+  // focus locked: opens the sheet of another node (null = back to the pinned one); the chain and the camera stay
+  function showNode(id) {
+    shown = id && id !== pinned ? id : null; collapsed = false;
+    openGroup = groupToOpen(shown || pinned);
+    renderSheet(); renderControls();
+    paintHighlight();
+    renderStatus();
+    hideTip();
+  }
+  function toggleLock() { if (!pinned) return; locked = !locked; showNode(null); }
   function pinNode(id) {
+    if (locked && pinned && id) { showNode(id); return; }
     var redraw = isolated;
     if (id && id[0] === 'b' && hiddenCategories.has(BUILDINGS[id.slice(2)].category)) { hiddenCategories.delete(BUILDINGS[id.slice(2)].category); redraw = true; }
-    if (!id) isolated = false;
+    if (!id) isolated = locked = false;
+    shown = null;
     pinned = id; if (id) collapsed = false;
-    // every group starts closed; a building with a single group shows it open
-    openGroup = id && id[0] === 'b' && BUILDINGS[id.slice(2)].groups.length === 1 ? 0 : null;
+    openGroup = groupToOpen(id);
     // a node that is not in the drawing (building removed from the graph, good without links) has to come in: then redraw
     if (redraw || !layout || (id && !layout.nodes[id])) { renderAll(true); if (pinned && !isolated) highlightOnly(); }
     else highlightOnly();
@@ -2147,6 +2174,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     if (ev.target.closest('[data-restore]')) { hiddenCategories = new Set(DATA.hiddenCategories); showGeneral = false; excluded = new Set(); recalculate(); renderAll(true); if (pinned && !isolated) highlightOnly(); openMenu('menu-filters'); return; }
     if ((b = ev.target.closest('button[data-era]'))) { closeMenu(); setEra(b.getAttribute('data-era')); return; }
     if (ev.target.closest('[data-iso]')) { toggleIsolated(); refocus('[data-iso]'); return; }
+    if (ev.target.closest('[data-lock]')) { toggleLock(); refocus('[data-lock]'); return; }
     if ((b = ev.target.closest('button[data-action]'))) {
       var bld = BUILDINGS[b.getAttribute('data-b')], action = b.getAttribute('data-action'), groupAttr = b.getAttribute('data-g');
       // same rule as the global shortcuts: "all" ticks everything; "basic" and "late game" tick one method per group
@@ -2281,9 +2309,11 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     if (ev.key === 'Escape') {
       if (menuIsOpen()) { closeMenu(); return; }
       if (typing) { x.blur(); return; }
-      // Esc closes an open method group first, then releases the node
-      if (pinned && openGroup !== null && pinned[0] === 'b' && BUILDINGS[pinned.slice(2)].groups.length > 1) { openGroup = null; renderSheet(); renderControls(); renderStatus(); return; }
-      if (pinned) pinNode(null);
+      // Esc closes an open method group first, then goes back to the sheet of a locked focus, then releases the node
+      var open = shown || pinned;
+      if (open && openGroup !== null && open[0] === 'b' && BUILDINGS[open.slice(2)].groups.length > 1) { openGroup = null; renderSheet(); renderControls(); renderStatus(); return; }
+      if (shown) showNode(null);
+      else if (pinned) pinNode(null);
       return;
     }
     if (typing) return;
@@ -2302,6 +2332,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       else if (k === 'b') setDirection('both');
       else if (k === 'd') setDirection('downstream');
       else if (k === 'i') toggleIsolated();
+      else if (k === 'l') toggleLock();
       else return;
       ev.preventDefault();
     }

@@ -6,7 +6,7 @@ Live at https://vic3chains.vercel.app/ · source: https://github.com/isaacbatst/
 
 - Raw materials on the left, final products on the right.
 - A filled block is a building (its color is the category); an icon with a label is a good.
-- Hover a node to light up everything it is made of; click to pin it and open its sheet. With a node pinned you can pick the direction and reach of the chain, or isolate it.
+- Hover a node to light up everything it is made of; click to pin it and open its sheet. With a node pinned you can pick the direction and reach of the chain, or isolate it. "Lock focus" keeps that chain in place while you click its other nodes to change their methods.
 - Each production method has a checkbox. With several methods ticked in one group, amounts become ranges (minimum to maximum across the ticked combinations). "Everything", "Basic" and "Late game" tick methods in every building at once.
 - Pick the era your technologies go up to: anything beyond it is drawn dashed or faded.
 - Filters hide building categories; the badge on the Filters button counts what differs from the default.
