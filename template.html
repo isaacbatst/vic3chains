@@ -525,7 +525,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       sc_basic: 'Basic', sc_basic_d: 'One method per group: the first. Optional groups stay off.',
       sc_late: 'Late game', sc_late_d: 'One method per group: the last on the list.', sc_last: 'last used; the selection changed since',
       cats_title: 'Building categories on the graph', general_chk: 'Show general inputs',
-      general_note: 'A general input is one a building only consumes through a support group (automation, rail transport, harvesting machines, fences). Unticked, they stay off the drawing and off the highlighted chains.',
+      general_note: 'A general input is one a building only consumes through a support group (automation, rail transport, harvesting machines, fences). Unticked, they stay off the drawing and off the highlighted chains, except for a method you ticked yourself.',
       era_title: 'My technologies go up to era', era_all: 'All', era_save: 'My save ({y})', era_note: 'Whatever needs a technology from a later era is drawn dashed or faded.',
       help_intro: 'Victoria 3, version {v}. Raw materials on the left, final products on the right. Every amount is per building level, per week.',
       read_title: 'How to read it',
@@ -545,7 +545,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       k_dir: 'chain: upstream, both, downstream', k_iso: 'isolate the chain, or show everything', k_lock: 'lock or unlock the focus', k_note: 'The chain shortcuts work while a node is pinned.',
       step_less: 'One step closer', step_more: 'One step further', step_back: 'Back to one step',
       general_title: 'General inputs',
-      general_text: 'What a building only consumes through a support group (a secondary group that does not change what it produces: automation, rail transport, harvesting machines, fences) stays off the drawing and off the highlighted chains. “Show general inputs”, in Filters, draws them all. The node’s sheet always shows the whole recipe.',
+      general_text: 'What a building only consumes through a support group (a secondary group that does not change what it produces: automation, rail transport, harvesting machines, fences) stays off the drawing and off the highlighted chains. A support method you ticked yourself, outside the active shortcut (Basic, Everything, Late game), is drawn like any other. “Show general inputs”, in Filters, draws them all. The node’s sheet always shows the whole recipe.',
       help_foot: 'Laws, power bloc principles and regions are not simulated: a method that depends on them carries a note. What you tick is stored in this browser.',
       fan: 'Fan-made tool, not affiliated with Paradox Interactive. Victoria 3 names and icons belong to Paradox Interactive.',
       privacy: 'No ads, no cookies. Anonymous visit counts only (Vercel Web Analytics).', data: 'Data read from game version {v}, generated on {d}.', repo: 'Source code',
@@ -594,7 +594,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       sc_basic: 'Básico', sc_basic_d: 'Um método por grupo: o primeiro. Grupos opcionais ficam desligados.',
       sc_late: 'Fim de jogo', sc_late_d: 'Um método por grupo: o último da lista.', sc_last: 'último usado; a seleção mudou desde então',
       cats_title: 'Categorias de edifício no grafo', general_chk: 'Mostrar insumos gerais',
-      general_note: 'Insumo geral é o que um edifício só consome por um grupo de apoio (automação, transporte ferroviário, máquinas de colheita, cercas). Desmarcado, ficam fora do desenho e das cadeias realçadas.',
+      general_note: 'Insumo geral é o que um edifício só consome por um grupo de apoio (automação, transporte ferroviário, máquinas de colheita, cercas). Desmarcado, ficam fora do desenho e das cadeias realçadas, menos o de um método que você mesmo marcou.',
       era_title: 'Minhas tecnologias vão até a era', era_all: 'Todas', era_save: 'Meu save ({y})', era_note: 'O que exigir tecnologia de era posterior aparece tracejado ou apagado.',
       help_intro: 'Victoria 3, versão {v}. Matéria-prima à esquerda, produto final à direita. Toda quantidade é por nível do edifício, por semana.',
       read_title: 'Como ler',
@@ -614,7 +614,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       k_dir: 'cadeia: para trás, as duas, para a frente', k_iso: 'isolar a cadeia, ou mostrar tudo', k_lock: 'travar ou destravar o foco', k_note: 'Os atalhos de cadeia valem com um nó fixado.',
       step_less: 'Um passo a menos', step_more: 'Um passo a mais', step_back: 'Voltar a um passo',
       general_title: 'Insumos gerais',
-      general_text: 'O que um edifício só consome por um grupo de apoio (grupo secundário que não muda o que ele produz: automação, transporte ferroviário, máquinas de colheita, cercas) fica fora do desenho e das cadeias realçadas. “Mostrar insumos gerais”, em Filtros, desenha todos. A folha do nó sempre mostra a receita inteira.',
+      general_text: 'O que um edifício só consome por um grupo de apoio (grupo secundário que não muda o que ele produz: automação, transporte ferroviário, máquinas de colheita, cercas) fica fora do desenho e das cadeias realçadas. Um método de apoio que você mesmo marcou, fora do atalho ativo (Básico, Tudo, Fim de jogo), é desenhado como qualquer outro. “Mostrar insumos gerais”, em Filtros, desenha todos. A folha do nó sempre mostra a receita inteira.',
       help_foot: 'Leis, princípios de bloco e regiões não são simulados: o método que depende deles traz uma nota. O que você marca fica guardado neste navegador.',
       fan: 'Ferramenta de fã, sem vínculo com a Paradox Interactive. Os nomes e ícones de Victoria 3 pertencem à Paradox Interactive.',
       privacy: 'Sem anúncios, sem cookies. Só contagem anônima de visitas (Vercel Web Analytics).', data: 'Dados lidos da versão {v} do jogo, gerados em {d}.', repo: 'Código-fonte',
@@ -902,10 +902,13 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   // A building uses one method per group. With several ticked, walk every combination (one ticked per group)
   // and keep, per good, the minimum and maximum of the net input and output. A group with nothing ticked does not
   // contribute. A method that requires another (unlocking_production_methods) only counts in a combination that has it.
+  // What a support group consumes is a general input, unless the method was ticked by hand: one that is ticked now and
+  // is not part of the active shortcut counts like a main method, so it is drawn.
   function recipeOf(b) {
+    var fromShortcut = ticksFor(b, shortcut);
     var tickedGroups = b.groups.map(function (g, gi) {
       var l = [];
-      g.methods.forEach(function (m, mi) { if (ticked[b.id][gi][mi]) l.push({ m: m, isSupport: g.isSupport }); });
+      g.methods.forEach(function (m, mi) { if (ticked[b.id][gi][mi]) l.push({ m: m, isSupport: g.isSupport && fromShortcut[gi][mi] }); });
       return l;
     });
     var buildingOk = techOk(b.tech), n = 0, acc = {};
