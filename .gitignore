@@ -5,3 +5,5 @@ preview.*.html
 my-save.json
 # English mod terms still without a translation, written by --todo
 *.todo.json
+# local Claude Code files (worktrees, settings)
+.claude/
