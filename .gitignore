@@ -1,4 +1,7 @@
 # preview fragment written next to the generator; not part of the site
 preview.html
+preview.*.html
 # personal save data for the preview
 my-save.json
+# English mod terms still without a translation, written by --todo
+*.todo.json

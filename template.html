@@ -251,6 +251,7 @@ kbd { font-family: var(--mono); font-size: 12px; border: 1px solid var(--border)
 .shortcut > *, .op > * { grid-column: 2; }
 .shortcut b { font-weight: 500; }
 .shortcut:hover, .op:hover { background: var(--accent); }
+a.op { color: inherit; text-decoration: none; }
 .op { align-items: center; padding: 6px 8px; }
 .op .lin { display: flex; align-items: center; gap: 8px; }
 .ops.two { display: grid; grid-template-columns: 1fr 1fr; }
@@ -461,6 +462,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
 <div class="app" id="app">
   <div class="top" id="top">
     <span class="brand" id="brand"></span>
+    <button type="button" class="tx wide-only" id="btn-variant" aria-expanded="false" aria-controls="menu-variant" hidden></button>
     <div class="search">
       <input id="search-input" type="search" autocomplete="off">
       <div class="results" id="search-results" hidden></div>
@@ -478,6 +480,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
 
   <div class="pop" id="menu-methods" hidden></div>
   <div class="pop" id="menu-theme" hidden></div>
+  <div class="pop list" id="menu-variant" hidden><div data-host="variants"></div></div>
   <div class="pop list" id="menu-era" hidden><div data-host="eras"></div></div>
   <div class="pop list" id="menu-language" hidden><div data-host="languages"></div></div>
   <div class="pop" id="menu-filters" hidden></div>
@@ -526,7 +529,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       sc_late: 'Late game', sc_late_d: 'One method per group: the last on the list.', sc_last: 'last used; the selection changed since',
       cats_title: 'Building categories on the graph', general_chk: 'Show general inputs',
       general_note: 'A general input is one a building only consumes through a support group (automation, rail transport, harvesting machines, fences). Unticked, they stay off the drawing and off the highlighted chains, except for a method you ticked yourself.',
-      era_title: 'My technologies go up to era', era_all: 'All', era_save: 'My save ({y})', era_note: 'Whatever needs a technology from a later era is drawn dashed or faded.',
+      era_title: 'My technologies go up to era', variant_title: 'Base game or mod', a_variant: 'Game data: {v}', variant_note: 'Each one keeps its own method choices.', era_all: 'All', era_save: 'My save ({y})', era_note: 'Whatever needs a technology from a later era is drawn dashed or faded.',
       help_intro: 'Victoria 3, version {v}. Raw materials on the left, final products on the right. Every amount is per building level, per week.',
       read_title: 'How to read it',
       read1: 'The graph shows the union of every ticked production method: every link that some of them makes possible.',
@@ -548,7 +551,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       general_text: 'What a building only consumes through a support group (a secondary group that does not change what it produces: automation, rail transport, harvesting machines, fences) stays off the drawing and off the highlighted chains. A support method you ticked yourself, outside the active shortcut (Basic, Everything, Late game), is drawn like any other. “Show general inputs”, in Filters, draws them all. The node’s sheet always shows the whole recipe.',
       help_foot: 'Laws, power bloc principles and regions are not simulated: a method that depends on them carries a note. What you tick is stored in this browser.',
       fan: 'Fan-made tool, not affiliated with Paradox Interactive. Victoria 3 names and icons belong to Paradox Interactive.',
-      privacy: 'No ads, no cookies. Anonymous visit counts only (Vercel Web Analytics).', data: 'Data read from game version {v}, generated on {d}.', repo: 'Source code',
+      privacy: 'No ads, no cookies. Anonymous visit counts only (Vercel Web Analytics).', data: 'Data read from game version {v}, generated on {d}.', data_mod: 'Includes the mod {n} {v}, which belongs to its authors; this page is not affiliated with them.', data_machine: 'The mod has no translation of its own, so its terms were machine-translated here; in the game they show in English. Search finds both.', repo: 'Source code',
       legend: 'Legend', lg_good: 'good', lg_bld: 'building: in from the left, out to the right; the fill is its category', lg_lock: 'building you cannot build yet',
       lg_ln: 'link possible with your technologies', lg_fut: 'link that needs a future technology', lg_ret: 'thin dashes around the graph: an input made further ahead', ret_tip: '{a} → {b}: {q} per level', ret_tip_n: '{a} → {n} links here, per level', lg_up: 'upstream: what this is made of (blue)', lg_dn: 'downstream: where this goes (orange)',
       lg_have: 'technology you have', lg_miss: 'technology you lack',
@@ -595,7 +598,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       sc_late: 'Fim de jogo', sc_late_d: 'Um método por grupo: o último da lista.', sc_last: 'último usado; a seleção mudou desde então',
       cats_title: 'Categorias de edifício no grafo', general_chk: 'Mostrar insumos gerais',
       general_note: 'Insumo geral é o que um edifício só consome por um grupo de apoio (automação, transporte ferroviário, máquinas de colheita, cercas). Desmarcado, ficam fora do desenho e das cadeias realçadas, menos o de um método que você mesmo marcou.',
-      era_title: 'Minhas tecnologias vão até a era', era_all: 'Todas', era_save: 'Meu save ({y})', era_note: 'O que exigir tecnologia de era posterior aparece tracejado ou apagado.',
+      era_title: 'Minhas tecnologias vão até a era', variant_title: 'Jogo base ou mod', a_variant: 'Dados do jogo: {v}', variant_note: 'Cada um guarda as próprias escolhas de métodos.', era_all: 'Todas', era_save: 'Meu save ({y})', era_note: 'O que exigir tecnologia de era posterior aparece tracejado ou apagado.',
       help_intro: 'Victoria 3, versão {v}. Matéria-prima à esquerda, produto final à direita. Toda quantidade é por nível do edifício, por semana.',
       read_title: 'Como ler',
       read1: 'O grafo mostra a união de todos os métodos de produção marcados: toda ligação que algum deles torna possível.',
@@ -617,7 +620,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       general_text: 'O que um edifício só consome por um grupo de apoio (grupo secundário que não muda o que ele produz: automação, transporte ferroviário, máquinas de colheita, cercas) fica fora do desenho e das cadeias realçadas. Um método de apoio que você mesmo marcou, fora do atalho ativo (Básico, Tudo, Fim de jogo), é desenhado como qualquer outro. “Mostrar insumos gerais”, em Filtros, desenha todos. A folha do nó sempre mostra a receita inteira.',
       help_foot: 'Leis, princípios de bloco e regiões não são simulados: o método que depende deles traz uma nota. O que você marca fica guardado neste navegador.',
       fan: 'Ferramenta de fã, sem vínculo com a Paradox Interactive. Os nomes e ícones de Victoria 3 pertencem à Paradox Interactive.',
-      privacy: 'Sem anúncios, sem cookies. Só contagem anônima de visitas (Vercel Web Analytics).', data: 'Dados lidos da versão {v} do jogo, gerados em {d}.', repo: 'Código-fonte',
+      privacy: 'Sem anúncios, sem cookies. Só contagem anônima de visitas (Vercel Web Analytics).', data: 'Dados lidos da versão {v} do jogo, gerados em {d}.', data_mod: 'Inclui o mod {n} {v}, que pertence aos seus autores; esta página não tem vínculo com eles.', data_machine: 'O mod não tem tradução própria, então os termos dele foram traduzidos automaticamente aqui; no jogo aparecem em inglês. A busca encontra os dois.', repo: 'Código-fonte',
       legend: 'Legenda', lg_good: 'mercadoria', lg_bld: 'edifício: entra pela esquerda, sai pela direita; a cor é a categoria', lg_lock: 'edifício que você ainda não pode construir',
       lg_ln: 'ligação possível com as suas tecnologias', lg_fut: 'ligação que depende de tecnologia futura', lg_ret: 'tracejado fino por fora do grafo: insumo fabricado mais à frente', ret_tip: '{a} → {b}: {q} por nível', ret_tip_n: '{a} → {n} ligações aqui, por nível', lg_up: 'para trás: do que isto é feito (azul)', lg_dn: 'para a frente: para onde isto vai (laranja)',
       lg_have: 'tecnologia que você tem', lg_miss: 'tecnologia que falta',
@@ -689,7 +692,9 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   // amount across the ticked combinations: a single number, a range, or "up to" when the minimum is zero
   var range = function (a, b) { return Math.abs(a - b) < 1e-9 ? fmt(b) : a <= 1e-9 ? t('upto', { v: fmt(b) }) : fmt(a) + '–' + fmt(b); };
   var norm = function (s) { return s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); };
-  var ROMAN = ['', 'I', 'II', 'III', 'IV', 'V'];
+  var ROMAN = ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII', 'XIII', 'XIV', 'XV'];
+  // the game has five eras; a mod may add more
+  var LAST_ERA = Math.max.apply(null, [5].concat(Object.keys(DATA.techs).map(function (x) { return DATA.techs[x]; })));
   var eraOf = function (x) { return DATA.techs[x] || 0; };
   // which technologies count as "have": everything (era 0), up to an era, or the exact list of a save
   var era = 0;
@@ -700,6 +705,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   var iconImg = function (id) { return ICONS[id] ? '<img class="ic" alt="" src="' + ICONS[id] + '">' : ''; };
   var ICON_PATHS = {
     layers: '<path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83z"/><path d="M2 12a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 12"/><path d="M2 17a1 1 0 0 0 .58.91l8.6 3.91a2 2 0 0 0 1.65 0l8.58-3.9A1 1 0 0 0 22 17"/>',
+    box: '<path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/>',
     hourglass: '<path d="M5 22h14"/><path d="M5 2h14"/><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"/><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"/>',
     funnel: '<polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>',
     palette: '<path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z"/><path d="M13.5 6.5h.01M17.5 10.5h.01M8.5 7.5h.01M6.5 12.5h.01"/>',
@@ -816,7 +822,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   }
 
   // ---------- what is kept in the browser ----------
-  var STORAGE_KEY = 'vic3chains-v1';
+  var STORAGE_KEY = 'vic3chains-v1' + (DATA.mod ? '-' + DATA.mod.id : '');
   function saveState() {
     try {
       var untickedMap = {};
@@ -825,10 +831,22 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
         b.groups.forEach(function (g, gi) { g.methods.forEach(function (m, mi) { if (!ticked[b.id][gi][mi]) l.push(gi + ':' + m.id); }); });
         if (l.length) untickedMap[b.id] = l;
       });
+      if (DATA.variants) localStorage.setItem(SHARED_KEY, JSON.stringify({ language: language, base: base, accent: accent, mode: mode }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify({ v: 2, shortcut: shortcut, hiddenCategories: Array.from(hiddenCategories), showGeneral: showGeneral, excluded: Array.from(excluded), unticked: untickedMap, sheetHeight: sheetHeight, era: era, language: language, base: base, accent: accent, mode: mode, dir: dir, steps: steps }));
     } catch (e) { /* no storage: the page just does not remember */ }
   }
-  var stored = null;
+  var stored = null, shared = null;
+  // On a site with more than one page (vanilla and mods), language and theme follow the visitor from one page to the other.
+  var SHARED_KEY = 'vic3chains-ui';
+  function loadShared() {
+    try {
+      var s = shared = DATA.variants ? JSON.parse(localStorage.getItem(SHARED_KEY) || 'null') : null;
+      if (!s) return;
+      if (BASES.indexOf(s.base) >= 0) base = s.base;
+      if (ACCENTS.indexOf(s.accent) >= 0) accent = s.accent;
+      if (['auto', 'light', 'dark'].indexOf(s.mode) >= 0) mode = s.mode;
+    } catch (e) { shared = null; }
+  }
   // Before the code was translated the state lived under another key, with Portuguese field names and values.
   // Move it once to the new key and format, then drop the old one. Any failure is ignored.
   function migrateOldState() {
@@ -853,7 +871,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     era = SAVE ? 'save' : 0;
     try {
       var o = stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-      if (!o) return;
+      if (!o) { loadShared(); return; }
       // Until version 2 the page opened with everything ticked. A stored state that is exactly that old default, untouched,
       // was never a choice: it gets the new default. Anything else is kept as it was.
       var oldDefault = SHORTCUTS.indexOf(o.shortcut) < 0 || (!o.v && o.shortcut === 'all' && !Object.keys(o.unticked || {}).length);
@@ -868,7 +886,8 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       if (BASES.indexOf(o.base) >= 0) base = o.base;
       if (ACCENTS.indexOf(o.accent) >= 0) accent = o.accent;
       if (['auto', 'light', 'dark'].indexOf(o.mode) >= 0) mode = o.mode;
-      if (o.era === 'save' ? !!SAVE : [0, 1, 2, 3, 4, 5].indexOf(o.era) >= 0) era = o.era;
+      if (o.era === 'save' ? !!SAVE : (o.era === Math.floor(o.era) && o.era >= 0 && o.era <= LAST_ERA)) era = o.era;
+      loadShared();
       excluded = new Set((o.excluded || []).filter(function (id) { return BUILDINGS[id]; }));
       Object.keys(o.unticked || {}).forEach(function (bid) {
         var b = BUILDINGS[bid]; if (!b) return;
@@ -883,6 +902,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   function initialLanguage() {
     var h = (location.hash || '').replace('#', '').toLowerCase();
     if (hasLanguage(h)) return h;
+    if (shared && hasLanguage(shared.language)) return shared.language;
     if (stored && hasLanguage(stored.language)) return stored.language;
     if (DATA.language && hasLanguage(DATA.language)) return DATA.language;
     var nav = (navigator.languages || [navigator.language || '']).map(function (x) { return String(x).slice(0, 2).toLowerCase(); });
@@ -893,7 +913,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     language = hasLanguage(c) ? c : 'en';
     locale = DATA.languages.filter(function (l) { return l[0] === language; })[0][2];
     document.documentElement.lang = locale;
-    if (DATA.site) document.title = t('title');
+    if (DATA.site) document.title = t('title') + (DATA.mod ? ': ' + DATA.mod.name : '');
     searchItems = null;
     renderStatic();
   }
@@ -2023,7 +2043,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     $('btn-help').innerHTML = triggerIcon('help') + '<span class="rt">' + t('help') + '</span>'; $('btn-help').title = t('help_aria');
     $('btn-theme').innerHTML = triggerIcon('palette') + '<span class="rt">' + t('theme') + '</span>' + CARET; $('btn-theme').setAttribute('aria-label', t('theme')); $('btn-theme').title = t('theme');
     $('menu-theme').innerHTML = '<div class="themes" data-host="theme"></div><div class="sec only-narrow"><h3>' + t('lang') + '</h3><div data-host="languages"></div></div>';
-    $('menu-methods').innerHTML = '<div class="sec"><h3>' + t('sc_title') + '</h3><div class="shortcuts" id="shortcuts"></div><p class="small">' + t('sc_note') + '</p></div>';
+    $('menu-methods').innerHTML = (DATA.variants ? '<div class="sec only-narrow"><h3>' + t('variant_title') + '</h3><div data-host="variants"></div></div>' : '') + '<div class="sec"><h3>' + t('sc_title') + '</h3><div class="shortcuts" id="shortcuts"></div><p class="small">' + t('sc_note') + '</p></div>';
     $('menu-filters').innerHTML = '<div class="sec"><h3>' + t('cats_title') + '</h3><div class="lks" style="justify-content:space-between"><span class="small" id="filter-visible"></span><span id="filter-restore"></span></div><div class="catlist" id="categories"></div></div>'
       + '<div class="sec only-narrow"><h3>' + t('era_title') + '</h3><div data-host="eras"></div></div>'
       + '<div class="sec"><label class="check" for="general-inputs"><input type="checkbox" id="general-inputs"><span>' + t('general_chk') + '</span></label><p class="small">' + t('general_note') + '</p></div>';
@@ -2034,7 +2054,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       + '<div class="sec"><h3>' + t('keys_title') + '</h3><dl class="keys">' + [['/', 'k_search'], ['Esc', 'k_esc'], ['0', 'k_fit'], ['+ −', 'k_zoom'], ['← ↑ → ↓', 'k_pan'], ['Enter', 'k_pin'], ['] .', 'k_more'], ['[ ,', 'k_less'], ['Shift+] Shift+.', 'k_max'], ['Shift+[ Shift+,', 'k_one'], ['U B D', 'k_dir'], ['I', 'k_iso'], ['L', 'k_lock']].map(function (x) { return '<dt>' + x[0].split(' ').map(function (k) { return '<kbd>' + k + '</kbd>'; }).join(' ') + '</dt><dd>' + t(x[1]) + '</dd>'; }).join('') + '</dl><p class="small">' + t('k_note') + '</p></div>'
       + '<div class="sec"><h3>' + t('general_title') + '</h3><p class="small">' + t('general_text') + '</p></div>'
       + '<p class="small">' + t('help_foot') + '</p>'
-      + '<p class="small foot">' + (DATA.analytics ? t('privacy') + ' ' : '') + t('fan') + ' ' + t('data', { v: esc(DATA.gameVersion), d: esc(DATA.generatedOn) }) + ' <a href="' + esc(DATA.repo) + '" target="_blank" rel="noopener">' + t('repo') + '</a></p>';
+      + '<p class="small foot">' + (DATA.analytics ? t('privacy') + ' ' : '') + t('fan') + ' ' + t('data', { v: esc(DATA.gameVersion), d: esc(DATA.generatedOn) }) + (DATA.mod && DATA.mod.machine.indexOf(language) >= 0 ? ' ' + t('data_machine') : '') + (DATA.mod ? ' ' + t('data_mod', { n: DATA.mod.url ? '<a href="' + esc(DATA.mod.url) + '" target="_blank" rel="noopener">' + esc(DATA.mod.name) + '</a>' : esc(DATA.mod.name), v: esc(DATA.mod.version) }) : '') + ' <a href="' + esc(DATA.repo) + '" target="_blank" rel="noopener">' + t('repo') + '</a></p>';
     $('legend-box').innerHTML = '<summary>' + iconSvg('chevR') + t('legend') + '</summary><div class="items">'
       + '<span><i class="lg good"></i>' + t('lg_good') + '</span><span><i class="lg bld"></i>' + t('lg_bld') + '</span><span><i class="lg lock"></i>' + t('lg_lock') + '</span>'
       + ['ln', 'fut', 'ret', 'up', 'dn'].map(function (k) { return '<span><svg class="lgl ' + k + '" width="24" height="6" aria-hidden="true"><line x1="0" y1="3" x2="24" y2="3"/></svg>' + t('lg_' + k) + '</span>'; }).join('')
@@ -2049,13 +2069,15 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
   function renderControls() {
     // one component for every single-choice menu: a list of options, the active one with a check mark in primary
     var optionButton = function (attr, value, label, active) { return '<button type="button" class="op" role="menuitemradio" aria-checked="' + active + '" data-' + attr + '="' + value + '"><span class="lin">' + label + '</span></button>'; };
-    var eras = [[0, t('era_opt_all')], [1, t('era_opt', { e: 'I' })], [2, t('era_opt', { e: 'II' })], [3, t('era_opt', { e: 'III' })], [4, t('era_opt', { e: 'IV' })], [5, t('era_opt', { e: 'V' })]].concat(SAVE ? [['save', t('era_save', { y: DATA.save.label })]] : []);
+    var eras = [[0, t('era_opt_all')]]; for (var en = 1; en <= LAST_ERA; en++) eras.push([en, t('era_opt', { e: ROMAN[en] || en })]);
+    eras = eras.concat(SAVE ? [['save', t('era_save', { y: DATA.save.label })]] : []);
     var eraLabel = eras.filter(function (x) { return x[0] === era; })[0][1];
     var languageLabel = DATA.languages.filter(function (l) { return l[0] === language; })[0][1];
     // x = [value, accessible name and tip, short form (icon or digit), long label (html)]
     var dualButton = function (attr, current) { return function (x) { return '<button type="button" data-' + attr + '="' + x[0] + '" aria-pressed="' + (current === x[0]) + '" aria-label="' + esc(x[1]) + '" data-tip="' + esc(x[1]) + '"><span class="long">' + x[3] + '</span><span class="short">' + x[2] + '</span></button>'; }; };
     var n3 = 0;
     var hosts = {
+      variants: !DATA.variants ? '' : '<div class="ops" role="menu" aria-label="' + esc(t('variant_title')) + '">' + DATA.variants.map(function (v, i) { return '<a class="op" role="menuitemradio" aria-checked="' + (i === DATA.variant) + '" href="' + esc(v[1]) + '"><span class="lin">' + esc(v[0]) + '</span></a>'; }).join('') + '</div><p class="small">' + t('variant_note') + '</p>',
       eras: '<div class="ops" role="menu" aria-label="' + esc(t('era_aria')) + '">' + eras.map(function (x) { return optionButton('era', x[0], esc(x[1]), x[0] === era); }).join('') + '</div><p class="small">' + t('era_note') + '</p>',
       languages: '<div class="ops" role="menu" aria-label="' + esc(t('lang')) + '">' + DATA.languages.map(function (l) { return optionButton('language', l[0], '<span lang="' + l[2] + '">' + esc(l[1]) + '</span>', l[0] === language); }).join('') + '</div>',
       theme: (DATA.site ? '<div class="sec"><h3>' + t('mode') + '</h3><div><div class="seg">' + segmentedHtml('mode', [['auto', t('mode_auto')], ['light', t('mode_light')], ['dark', t('mode_dark')]], mode) + '</div></div></div>' : '')
@@ -2098,6 +2120,12 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
       var n = DATA.buildings.filter(function (b) { return b.category === c; }).length;
       return '<label class="check" for="cat-' + i + '"><input type="checkbox" id="cat-' + i + '" data-c="' + i + '"' + (hiddenCategories.has(c) ? '' : ' checked') + '><i class="sw" style="--cat:' + categoryColor(c) + '"></i><span>' + esc(categoryName(c)) + '</span><span class="ct">' + n + '</span></label>';
     }).join('');
+    if (DATA.variants) {
+      var variantLabel = DATA.variants[DATA.variant][0];
+      $('btn-variant').hidden = false;
+      $('btn-variant').innerHTML = triggerIcon('box', DATA.variant !== 0) + '<span class="rt">' + esc(variantLabel) + '</span>' + CARET;
+      $('btn-variant').setAttribute('aria-label', t('a_variant', { v: variantLabel })); $('btn-variant').title = t('a_variant', { v: variantLabel });
+    }
     $('btn-era').innerHTML = triggerIcon('hourglass', era !== DEFAULT_ERA) + '<span class="rt">' + esc(eraLabel) + '</span>' + CARET;
     $('btn-era').setAttribute('aria-label', t('a_era', { v: eraLabel })); $('btn-era').title = t('a_era', { v: eraLabel });
     $('btn-language').innerHTML = triggerIcon('globe') + '<span class="rt">' + esc(languageLabel) + '</span>' + CARET;
@@ -2196,7 +2224,7 @@ button.un:hover .gnm { text-decoration: underline; text-underline-offset: 3px; }
     var again = focusId && document.getElementById(focusId); if (again) again.focus();
   }
 
-  var MENUS = [['menu-methods', 'btn-methods'], ['menu-era', 'btn-era'], ['menu-filters', 'btn-filters'], ['menu-theme', 'btn-theme'], ['menu-language', 'btn-language'], ['menu-help', 'btn-help']];
+  var MENUS = [['menu-variant', 'btn-variant'], ['menu-methods', 'btn-methods'], ['menu-era', 'btn-era'], ['menu-filters', 'btn-filters'], ['menu-theme', 'btn-theme'], ['menu-language', 'btn-language'], ['menu-help', 'btn-help']];
   var openMenuEntry = null;
   // opens one menu (closing any other) 4 px under its trigger, left edges aligned; on the right side of the bar the
   // right edges are aligned instead, so the menu never leaves the window. "moveFocus" moves the focus into the menu.
