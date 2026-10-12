@@ -65,6 +65,8 @@ A mod often ships its other languages as copies of the English text. For those t
 
 Tried with Tech & Res 1.7. Icons in BC7 and PNG files under a `.dds` name are decoded; BC7 blocks with three subsets are not.
 
+The step-by-step for updating and publishing both pages is in the [runbook](RUNBOOK.md).
+
 Files:
 
 - `generate.cjs`: the generator. It parses the game's script files, decodes the `.dds` icons and writes the page.
